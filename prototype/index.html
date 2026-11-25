@@ -1,0 +1,2068 @@
+<title>Spoke</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Spoke: a clickable prototype of an app that helps new cyclists in Chicago find and join a no-drop group ride.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%230F7A4A' stroke-width='3'/%3E%3Cpath d='M16 4.5v23M4.5 16h23M7.9 7.9l16.2 16.2M24.1 7.9 7.9 24.1' stroke='%230F7A4A' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='16' r='3.2' fill='%230F7A4A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400..700&display=swap">
+<script>
+  // Load the web fonts without blocking the first paint: text shows at once in the fallback font, then swaps.
+  (function () {
+    var l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400..700&display=swap";
+    document.head.appendChild(l);
+  })();
+</script>
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400..700&display=swap"></noscript>
+<style>
+/* Layout: a phone frame on a quiet stage at desktop width; the app runs full-bleed on phones.
+   Palette: painted bike-lane green + hi-vis amber. Light and dark themes share one token set. */
+:root{
+  --lane:#0F7A4A; --lane-deep:#0B5A37; --lane-tint:#E2F0E6; --on-lane:#FFFFFF;
+  --hivis:#FFC53D; --hivis-tint:#FFF4D6; --on-hivis:#15211B;
+  --ink:#15211B; --ink-2:#4E5C54; --ink-3:#66736B;
+  --paper:#F3F6F1; --card:#FFFFFF; --line:#DBE2DA;
+  --alert:#B03A0B; --alert-tint:#FCE9DC; --heart:#C8255A;
+  --stage:#DFE7DE; --bezel:#141B17;
+  --map-land:#E6ECE2; --map-street:#FFFFFF; --map-park:#CDE4CC; --map-water:#BCDAEA;
+  --face-1:#CFE6D7; --face-2:#FFE3A3; --face-3:#D6DEF0; --face-4:#F4D3C4; --face-ink:#15211B;
+  --toast-bg:#15211B; --toast-fg:#F3F6F1; --toast-action:#FFC53D;
+  --shadow:0 1px 2px rgba(21,33,27,.06),0 8px 24px rgba(21,33,27,.08);
+  --font-display:"Bricolage Grotesque","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+  --font-body:"Figtree","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --gutter:max(20px,env(safe-area-inset-left,0px));
+  --gutter-r:max(20px,env(safe-area-inset-right,0px));
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --lane:#3DBE80; --lane-deep:#5FD39A; --lane-tint:#173A28; --on-lane:#06180F;
+    --hivis:#FFC53D; --hivis-tint:#33290F; --on-hivis:#15211B;
+    --ink:#E8EFE9; --ink-2:#B4C1B9; --ink-3:#93A098;
+    --paper:#0F1512; --card:#18211C; --line:#2B3731;
+    --alert:#FF9C6E; --alert-tint:#3B1F14; --heart:#FF6F9B;
+    --stage:#090D0B; --bezel:#000000;
+    --map-land:#1C2520; --map-street:#2D3933; --map-park:#1E3A29; --map-water:#173449;
+    --face-1:#2C5A41; --face-2:#6A5418; --face-3:#34426A; --face-4:#6A3B29; --face-ink:#F3F6F1;
+    --toast-bg:#2A3530; --toast-fg:#F3F6F1; --toast-action:#FFC53D;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --lane:#3DBE80; --lane-deep:#5FD39A; --lane-tint:#173A28; --on-lane:#06180F;
+  --hivis:#FFC53D; --hivis-tint:#33290F; --on-hivis:#15211B;
+  --ink:#E8EFE9; --ink-2:#B4C1B9; --ink-3:#93A098;
+  --paper:#0F1512; --card:#18211C; --line:#2B3731;
+  --alert:#FF9C6E; --alert-tint:#3B1F14; --heart:#FF6F9B;
+  --stage:#090D0B; --bezel:#000000;
+  --map-land:#1C2520; --map-street:#2D3933; --map-park:#1E3A29; --map-water:#173449;
+  --face-1:#2C5A41; --face-2:#6A5418; --face-3:#34426A; --face-4:#6A3B29; --face-ink:#F3F6F1;
+  --toast-bg:#2A3530; --toast-fg:#F3F6F1; --toast-action:#FFC53D;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--stage);color:var(--ink);font:400 15px/1.5 var(--font-body);-webkit-font-smoothing:antialiased;transition:background-color .25s}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+h1,h2,p,ul,ol,dl,dd,figure,blockquote,fieldset{margin:0}
+ul,ol{padding:0;list-style:none}
+fieldset{border:0;padding:0;min-width:0}
+legend{padding:0}
+svg{display:block}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:3px solid var(--lane);outline-offset:2px}
+[tabindex="-1"]:focus{outline:none}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* Screen change: the new screen slides in. Plain CSS so taps are never blocked mid-change. */
+.scroller.enter>*{animation:enter .24s cubic-bezier(.2,.8,.2,1) both}
+.scroller.enter>.cta-bar,.scroller.enter>.tabbar,.scroller.enter>.appbar{animation-name:fade}
+@keyframes enter{from{opacity:.35;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:.35}to{opacity:1}}
+
+/* ---------- Stage + device frame (desktop) ---------- */
+.stage{height:100%;display:grid;grid-template-columns:minmax(0,320px) auto;justify-content:center;align-items:center;column-gap:72px;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.intro{display:grid;gap:20px;align-content:center}
+.brand{display:inline-flex;align-items:center;gap:8px;font:800 22px/1 var(--font-display);letter-spacing:-.01em;color:var(--ink)}
+.brand .logo{width:28px;height:28px;color:var(--lane)}
+.brand-lg{font-size:34px}
+.brand-lg .logo{width:40px;height:40px}
+.intro-lede{font:700 26px/1.2 var(--font-display);letter-spacing:-.01em;text-wrap:balance}
+.intro-body{color:var(--ink-2);font-size:16px;max-width:34ch}
+.try{display:grid;gap:8px;font-size:14px;color:var(--ink-2)}
+.try li{display:flex;gap:10px;align-items:center}
+.try .ic{width:18px;height:18px;color:var(--lane)}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.flow li{display:inline-flex;align-items:center;gap:6px;font:600 13px/1 var(--font-body);color:var(--ink-2)}
+.flow li+li::before{content:"";width:14px;height:2px;border-radius:2px;background:var(--ink-3);opacity:.45}
+.flow li span{padding:7px 11px;border-radius:999px;border:1.5px solid var(--line);background:var(--card)}
+.flow li[aria-current="step"] span{background:var(--lane);border-color:var(--lane);color:var(--on-lane)}
+.intro-actions{display:flex;gap:10px;flex-wrap:wrap}
+.device{width:412px;height:min(844px,calc(100vh - 64px));min-height:560px;padding:11px;border-radius:54px;background:var(--bezel);box-shadow:0 40px 70px -30px rgba(0,0,0,.55)}
+@supports (height:100dvh){.device{height:min(844px,calc(100dvh - 64px))}}
+.screen{position:relative;height:100%;display:flex;flex-direction:column;border-radius:43px;overflow:hidden;background:var(--paper)}
+.statusbar{flex:none;height:46px;display:flex;align-items:center;justify-content:space-between;padding:4px 28px 0 36px;font:600 15px/1 var(--font-body);color:var(--ink)}
+.sb-icons{display:flex;gap:6px;align-items:center}
+.scroller{flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.scroller::-webkit-scrollbar{display:none}
+/* Anything scrolled or tabbed into view clears the sticky top bar and the bottom bars. */
+.scroller,html{scroll-padding-top:64px;scroll-padding-bottom:100px}
+
+/* ---------- Shared app pieces ---------- */
+.pad{padding-left:var(--gutter);padding-right:var(--gutter-r)}
+.display{font:800 31px/1.08 var(--font-display);letter-spacing:-.02em;text-wrap:balance}
+.h1{font:800 27px/1.1 var(--font-display);letter-spacing:-.02em;text-wrap:balance}
+.eyebrow{font:700 12px/1.2 var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--lane)}
+.sub{color:var(--ink-2);font-size:15px}
+.section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:700 18px/1.2 var(--font-display);letter-spacing:-.01em}
+.count{font:600 13px/1 var(--font-body);color:var(--ink-3)}
+section{display:grid;gap:12px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:999px;font:700 12px/1 var(--font-body);background:var(--paper);color:var(--ink-2);white-space:nowrap}
+.pill .ic{width:14px;height:14px;stroke-width:2.6}
+.pill-alert{background:var(--alert-tint);color:var(--alert)}
+.pill-going{background:var(--lane-tint);color:var(--lane-deep)}
+.pill-hivis{background:var(--hivis);color:var(--on-hivis)}
+.faces{display:flex}
+.face{display:grid;place-items:center;width:30px;height:30px;margin-left:-5px;border-radius:50%;border:2px solid var(--card);font:700 10px/1 var(--font-body);letter-spacing:-.02em;color:var(--face-ink)}
+.face:first-child{margin-left:0}
+.f1{background:var(--face-1)}.f2{background:var(--face-2)}.f3{background:var(--face-3)}.f4{background:var(--face-4)}
+.face.me{background:var(--lane);color:var(--on-lane)}
+.face.more{background:var(--paper);color:var(--ink-2)}
+.faces-lg .face{width:38px;height:38px;font-size:12px;border-color:var(--paper)}
+.avatar{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;font:700 13px/1 var(--font-body);background:var(--ink);color:var(--paper)}
+.avatar-lg{width:52px;height:52px;font-size:16px;color:var(--face-ink)}
+.avatar-lg.f1{background:var(--face-1)}.avatar-lg.f2{background:var(--face-2)}.avatar-lg.f3{background:var(--face-3)}.avatar-lg.f4{background:var(--face-4)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:16px;border:0;font:700 16px/1 var(--font-body);text-decoration:none;cursor:pointer;transition:background-color .15s,border-color .15s,transform .1s}
+.btn:active{transform:scale(.98)}
+.btn .ic{width:20px;height:20px}
+.btn-primary{background:var(--lane);color:var(--on-lane)}
+.btn-primary:hover{background:var(--lane-deep)}
+.btn-ghost{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+.btn-ghost:hover{border-color:var(--ink-3)}
+.btn-sm{min-height:44px;font-size:15px;padding:0 16px;border-radius:14px}
+.link{background:none;border:0;padding:6px 0;font:700 14px/1.2 var(--font-body);color:var(--lane);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.link-danger{color:var(--alert)}
+.round-btn{position:relative;display:grid;place-items:center;flex:none;width:40px;height:40px;padding:0;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:color .15s,border-color .15s,transform .1s}
+.round-btn:hover{border-color:var(--ink-3)}
+.round-btn:active{transform:scale(.92)}
+.round-btn .ic{width:20px;height:20px}
+.save-btn{z-index:2;width:36px;height:36px}
+.save-btn .ic{width:18px;height:18px}
+.save-btn[aria-pressed="true"]{color:var(--heart);border-color:var(--heart)}
+.save-btn[aria-pressed="true"] .ic{fill:currentColor}
+.save-btn.pop{animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+
+.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:6px;padding:6px var(--gutter-r) 6px var(--gutter);background:color-mix(in srgb,var(--paper) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.appbar-actions{margin-left:auto;display:flex;gap:8px}
+.icon-btn{display:grid;place-items:center;width:44px;height:44px;margin-left:-10px;border-radius:14px;color:var(--ink);text-decoration:none}
+.icon-btn:hover{background:var(--line)}
+.icon-btn .ic{width:24px;height:24px}
+.appbar-title{font:700 16px/1 var(--font-body)}
+
+.cta-bar{position:sticky;bottom:0;z-index:5;margin-top:auto;display:flex;align-items:center;gap:14px;padding:12px var(--gutter-r) calc(12px + env(safe-area-inset-bottom,0px)) var(--gutter);background:color-mix(in srgb,var(--paper) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
+.cta-bar .btn{flex:1}
+.cta-meta{display:grid;gap:2px;min-width:0;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.cta-meta strong{font-size:16px;color:var(--ink)}
+.cta-joined{display:grid;gap:2px;justify-items:start}
+
+.tabbar{position:sticky;bottom:0;z-index:6;margin-top:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px var(--gutter-r) calc(8px + env(safe-area-inset-bottom,0px)) var(--gutter);background:color-mix(in srgb,var(--card) 94%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+.tab{position:relative;display:grid;justify-items:center;gap:4px;padding:7px 0 5px;border-radius:12px;font:600 12px/1 var(--font-body);color:var(--ink-3);text-decoration:none}
+.tab .ic{width:22px;height:22px}
+.tab:hover{color:var(--ink)}
+.tab[aria-current="page"]{color:var(--lane)}
+.tab[aria-current="page"]::before{content:"";position:absolute;top:-6px;width:28px;height:3px;border-radius:0 0 3px 3px;background:var(--lane)}
+.tab-badge{position:absolute;top:1px;left:calc(50% + 7px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--hivis);color:var(--on-hivis);font:700 11px/18px var(--font-body);text-align:center;font-variant-numeric:tabular-nums}
+
+.toast{position:absolute;left:50%;bottom:100px;z-index:20;display:flex;align-items:center;gap:14px;width:max-content;max-width:calc(100% - 40px);padding:12px 16px;border-radius:14px;background:var(--toast-bg);color:var(--toast-fg);font:600 14px/1.35 var(--font-body);box-shadow:var(--shadow);opacity:0;visibility:hidden;transform:translate(-50%,8px);transition:opacity .2s,transform .2s,visibility .2s;pointer-events:none;overflow-wrap:anywhere}
+.toast.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.toast.show button{pointer-events:auto} /* messages never block taps; only Undo is tappable */
+.toast{overflow:hidden;gap:10px}
+.t-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--toast-action) 22%,transparent);color:var(--toast-action)}
+.t-ic .ic{width:14px;height:14px;stroke-width:2.8}
+.t-msg{min-width:0}
+.t-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--toast-action);transform-origin:left;animation:tbar 6s linear forwards}
+.toast.paused .t-bar{animation-play-state:paused}
+@keyframes tbar{to{transform:scaleX(0)}}
+.screen[data-fab="raised"] .toast{bottom:168px} /* sit above the floating bot */
+.toast button{flex:none;background:none;border:0;padding:4px 2px;font:700 14px/1 var(--font-body);color:var(--toast-action);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- Home ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px var(--gutter-r) 4px var(--gutter)}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.hello{display:grid;gap:8px;padding-top:14px;padding-bottom:16px}
+.greet{font-weight:600;color:var(--ink-2)}
+.loc{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-2)}
+.loc .ic{width:16px;height:16px;color:var(--lane)}
+.search{display:flex;align-items:center;gap:10px;height:48px;margin:0 var(--gutter-r) 12px var(--gutter);padding:0 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink-3);transition:border-color .15s,box-shadow .15s}
+.search:focus-within{border-color:var(--lane);box-shadow:0 0 0 3px color-mix(in srgb,var(--lane) 25%,transparent)}
+.search input{flex:1;min-width:0;height:100%;border:0;background:transparent;font:500 15px/1 var(--font-body);color:var(--ink);outline:none}
+.search input::placeholder{color:var(--ink-3)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px var(--gutter-r) 16px var(--gutter);scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:10px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font:600 14px/1 var(--font-body);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.stack{display:grid;gap:16px;padding-bottom:28px}
+.nodrop{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;background:var(--hivis-tint);font-size:14px}
+.nodrop-badge{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--hivis);color:var(--on-hivis)}
+.nodrop-badge .ic{width:18px;height:18px}
+.ride-list{display:grid;gap:14px}
+.ride-card,.mine-card{position:relative;display:grid;gap:8px;padding:16px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);color:inherit;text-decoration:none;transition:transform .15s ease}
+.ride-card:hover,.mine-card:hover{transform:translateY(-2px)}
+/* Off-screen cards skip layout until scrolled near (faster first paint). */
+.ride-list>.ride-card,.ride-list>.mine-card{content-visibility:auto;contain-intrinsic-size:auto 230px}
+.rc-link{color:inherit;text-decoration:none}
+.rc-link::after{content:"";position:absolute;inset:0;border-radius:20px}
+.rc-link:focus-visible{outline:none}
+.ride-card:has(.rc-link:focus-visible){outline:3px solid var(--lane);outline-offset:2px}
+.rc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:36px}
+.rc-right{display:flex;align-items:center;gap:8px}
+.rc-when{font:700 12px/1 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--lane)}
+.rc-name{font:800 21px/1.15 var(--font-display);letter-spacing:-.015em}
+.rc-meet{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-2)}
+.rc-meet .ic{width:15px;height:15px}
+.rc-stats{display:flex;flex-wrap:wrap;gap:6px}
+.rc-stats span{padding:7px 10px;border-radius:10px;background:var(--paper);font:600 13px/1 var(--font-body);font-variant-numeric:tabular-nums}
+.rc-foot{display:flex;align-items:center;gap:10px;margin-top:4px;padding-top:12px;border-top:1px solid var(--line)}
+.rc-going{font-size:13px;font-weight:600;color:var(--ink-2)}
+.rc-go{margin-left:auto;display:inline-flex;align-items:center;gap:2px;font-weight:700;font-size:14px;color:var(--lane)}
+.rc-go .ic{width:18px;height:18px}
+.empty-state{display:grid;justify-items:center;gap:12px;padding:32px 20px;border-radius:20px;border:1.5px dashed var(--line);background:var(--card);text-align:center;color:var(--ink-2)}
+.empty-state strong{font:800 19px/1.2 var(--font-display);color:var(--ink)}
+.empty-ic{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--lane-tint);color:var(--lane-deep)}
+.empty-ic .ic{width:26px;height:26px}
+.page-head{display:grid;gap:6px;padding-top:18px;padding-bottom:16px}
+.mine-foot{display:flex;align-items:center;gap:8px;margin-top:4px;padding-top:12px;border-top:1px solid var(--line);font-weight:700;font-size:14px;color:var(--lane)}
+.mine-foot .ic{width:18px;height:18px}
+.mine-foot span:last-child{margin-left:auto;font-weight:600;color:var(--ink-2)}
+
+/* ---------- Details ---------- */
+.stack-lg{display:grid;gap:22px;padding-top:6px;padding-bottom:28px}
+.map{border-radius:20px;overflow:hidden;background:var(--card);box-shadow:var(--shadow)}
+.map svg{width:100%;height:auto}
+.map figcaption{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--ink-2);text-wrap:pretty}
+.map figcaption .ic{width:16px;height:16px;color:var(--lane)}
+.route-line{stroke-dasharray:900;stroke-dashoffset:900;animation:draw 1.1s .15s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+[data-still] .route-line{animation:none;stroke-dashoffset:0}
+[data-still] .confetti{display:none}
+.titleblock{display:grid;gap:8px}
+.meet{display:flex;gap:8px;align-items:flex-start;color:var(--ink-2)}
+.meet .ic{width:18px;height:18px;margin-top:2px;color:var(--lane)}
+.meet strong{color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stats div{padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.stats dt{font:600 12px/1.2 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.stats dd{margin-top:6px;font:800 22px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.stats dd small{font:600 13px/1 var(--font-body);color:var(--ink-2)}
+.plan{display:grid;gap:12px}
+.plan li{display:flex;gap:12px;align-items:flex-start}
+.plan-ic{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--lane-tint);color:var(--lane-deep)}
+.plan-ic .ic{width:18px;height:18px}
+.leader{display:grid;gap:12px;padding:16px;border-radius:20px;background:var(--card);box-shadow:var(--shadow)}
+.leader-head{display:flex;gap:12px;align-items:center}
+.leader-name{font:800 17px/1.2 var(--font-display)}
+.leader-meta{font-size:13px;color:var(--ink-2)}
+.leader blockquote{font-size:15px;line-height:1.5}
+.going-row{display:flex;align-items:center;gap:12px;font-variant-numeric:tabular-nums}
+.bring{display:grid;border-radius:16px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.bring li{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.bring li+li{border-top:1px solid var(--line)}
+.tick{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:7px;background:var(--lane-tint);color:var(--lane-deep)}
+.tick .ic{width:14px;height:14px;stroke-width:3}
+.bring .note{margin-left:auto;font-size:12px;color:var(--ink-3);text-align:right}
+.bring .req{color:var(--alert);font-weight:700}
+
+/* ---------- Join ---------- */
+.field legend{margin-bottom:12px;font:700 17px/1.2 var(--font-display)}
+.bike-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.opt{position:relative;display:grid;gap:6px;align-content:start;padding:14px;border-radius:16px;border:2px solid var(--line);background:var(--card);cursor:pointer;transition:border-color .15s,background-color .15s}
+.opt input,.seg-opt input,.toggle input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.opt-ic{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:var(--paper);color:var(--ink)}
+.opt-label{font-weight:700;font-size:15px;line-height:1.25}
+.opt-note{font-size:12.5px;line-height:1.35;color:var(--ink-2)}
+.opt-check{position:absolute;top:12px;right:12px;display:none;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--lane);color:var(--on-lane)}
+.opt-check .ic{width:13px;height:13px;stroke-width:3.2}
+.opt:has(input:checked){border-color:var(--lane);background:var(--lane-tint)}
+.opt:has(input:checked) .opt-ic{background:var(--lane);color:var(--on-lane)}
+.opt:has(input:checked) .opt-check{display:grid}
+.opt:has(input:focus-visible),.seg-opt:has(input:focus-visible){outline:3px solid var(--lane);outline-offset:2px}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px;border-radius:14px;background:var(--line)}
+.seg-opt{position:relative;display:block;border-radius:11px;cursor:pointer}
+.seg-opt span{display:grid;place-items:center;min-height:42px;border-radius:11px;font-weight:700;font-size:14px;color:var(--ink-2)}
+.seg-opt:has(input:checked) span{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.toggles{display:grid;border-radius:16px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.toggle{position:relative;display:flex;align-items:center;gap:14px;padding:14px;cursor:pointer}
+.toggle+.toggle{border-top:1px solid var(--line)}
+.toggle-text{flex:1;display:grid;gap:2px;min-width:0}
+.toggle-text strong{font-size:15px}
+.toggle-text span{font-size:13px;color:var(--ink-2)}
+.switch{flex:none;position:relative;width:50px;height:30px;border-radius:999px;background:var(--line);transition:background-color .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.toggle input:checked+.switch{background:var(--lane)}
+.toggle input:checked+.switch::after{transform:translateX(20px)}
+.toggle input:focus-visible+.switch{outline:3px solid var(--lane);outline-offset:2px}
+.fineprint{font-size:13px;color:var(--ink-3)}
+
+/* ---------- Done ---------- */
+.done{position:relative;display:grid;gap:18px;padding-top:28px;padding-bottom:32px}
+.confetti{position:absolute;inset:0 0 auto;height:280px;overflow:hidden;pointer-events:none}
+.confetti i{position:absolute;top:-14px;width:8px;height:13px;border-radius:2px;opacity:0;animation:fall 1.7s ease-in forwards}
+@keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(270px) rotate(540deg)}}
+.center{text-align:center}
+.done-hero{position:relative;justify-self:center;display:grid;place-items:center;width:100px;height:100px;border-radius:50%;background:var(--lane-tint)}
+.done-wheel{display:grid;place-items:center;color:var(--lane);animation:roll .9s cubic-bezier(.2,.8,.2,1) both}
+.done-wheel .logo{width:64px;height:64px}
+.done-check{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:3px solid var(--paper);background:var(--hivis);color:var(--on-hivis);animation:pop .45s .7s cubic-bezier(.3,1.6,.5,1) both}
+.done-check .ic{width:20px;height:20px;stroke-width:3}
+@keyframes roll{from{transform:translateX(-120px) rotate(-360deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.ticket{display:grid;gap:14px;padding:18px;border-radius:22px;background:var(--card);box-shadow:var(--shadow)}
+.ticket-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.ticket-kicker{font:700 12px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.ticket-name{font:800 22px/1.15 var(--font-display);letter-spacing:-.015em}
+.ticket-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.ticket-grid dt{font:600 12px/1.2 var(--font-body);color:var(--ink-3)}
+.ticket-grid dd{margin-top:3px;font-weight:700;font-size:15px;line-height:1.3}
+.ticket-tear{position:relative;height:0;margin:2px -18px;border-top:2px dashed var(--line)}
+.ticket-tear::before,.ticket-tear::after{content:"";position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:var(--paper)}
+.ticket-tear::before{left:-11px}
+.ticket-tear::after{right:-11px}
+.ticket-notes{display:grid;gap:10px;font-size:14px;color:var(--ink-2)}
+.ticket-notes li{display:flex;gap:10px;align-items:flex-start}
+.ticket-notes .ic{width:18px;height:18px;margin-top:1px;color:var(--lane)}
+.ticket-foot{display:flex;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid var(--line);font:600 12px/1.3 var(--font-body);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.done-actions{display:grid;gap:10px}
+.done-actions .link{justify-self:center}
+
+/* ---------- Home extras: next ride, picks, list/map, sort ---------- */
+[hidden]{display:none!important}
+.next{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;background:var(--lane);color:var(--on-lane);text-decoration:none;box-shadow:var(--shadow)}
+.next-ic{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--on-lane) 16%,transparent)}
+.next-text{flex:1;display:grid;gap:3px;min-width:0}
+.next-k{font:700 12px/1.2 var(--font-body);letter-spacing:.05em;text-transform:uppercase}
+.next strong{font:800 18px/1.2 var(--font-display)}
+.tune{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border-radius:16px;border:1.5px dashed var(--lane);background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.tune>.ic:first-child{width:26px;height:26px;color:var(--lane)}
+.tune>span{flex:1;display:grid;gap:2px;min-width:0}
+.tune>span span{font-size:13px;color:var(--ink-2)}
+.tune-set{border-style:solid;border-color:var(--line)}
+.list-head{display:grid;gap:12px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.view-toggle{display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--line)}
+.view-toggle button{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:0;border-radius:9px;background:transparent;font:700 13px/1 var(--font-body);color:var(--ink-2);cursor:pointer}
+.view-toggle button .ic{width:16px;height:16px}
+.view-toggle button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.sort{position:relative;display:inline-flex;align-items:center}
+.sort select{appearance:none;-webkit-appearance:none;min-height:42px;padding:0 34px 0 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:600 13px/1 var(--font-body);cursor:pointer}
+.sort .ic{position:absolute;right:10px;width:16px;height:16px;pointer-events:none;color:var(--ink-2)}
+.rc-stats .stat-pick{display:inline-flex;align-items:center;gap:4px;background:var(--hivis);color:var(--on-hivis)}
+.stat-pick .ic{width:14px;height:14px}
+.citymap{position:relative;border-radius:20px;overflow:hidden;background:var(--map-land);box-shadow:var(--shadow)}
+.citymap svg{width:100%;height:auto}
+.pin{position:absolute;z-index:1;display:grid;place-items:center;width:40px;height:40px;padding:0;border-radius:50%;border:3px solid var(--lane);background:var(--card);color:var(--ink);font:800 12px/1 var(--font-body);font-variant-numeric:tabular-nums;box-shadow:0 4px 10px rgba(0,0,0,.25);transform:translate(-50%,-50%);cursor:pointer;transition:transform .15s,background-color .15s}
+.pin:hover{transform:translate(-50%,-50%) scale(1.08)}
+.pin[aria-pressed="true"]{z-index:2;background:var(--lane);color:var(--on-lane);transform:translate(-50%,-50%) scale(1.18)}
+.pin-full{border-color:var(--alert)}
+.pin-going::after{content:"";position:absolute;right:-5px;top:-5px;width:14px;height:14px;border-radius:50%;background:var(--hivis);border:2px solid var(--card)}
+.you-dot{position:absolute;width:18px;height:18px;border-radius:50%;background:#2F7DF6;border:3px solid #FFFFFF;box-shadow:0 0 0 7px rgba(47,125,246,.25);transform:translate(-50%,-50%)}
+.map-legend{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
+.you-key{flex:none;width:12px;height:12px;border-radius:50%;background:#2F7DF6;box-shadow:0 0 0 3px rgba(47,125,246,.25)}
+
+/* ---------- Bottom sheet ---------- */
+.sheet-wrap{position:absolute;inset:0;z-index:30;display:flex;align-items:flex-end;background:rgba(5,10,7,.5);animation:fadein .2s ease both}
+.sheet{width:100%;max-height:90%;overflow-y:auto;display:grid;gap:18px;padding:10px var(--gutter-r) calc(20px + env(safe-area-inset-bottom,0px)) var(--gutter);border-radius:28px 28px 0 0;background:var(--paper);box-shadow:0 -10px 40px rgba(0,0,0,.25);animation:sheetup .32s cubic-bezier(.2,.8,.2,1) both}
+.grabber{justify-self:center;width:42px;height:5px;border-radius:3px;background:var(--line)}
+.sheet-q{display:grid;gap:10px}
+.q{font:700 16px/1.2 var(--font-display)}
+.q span{margin-left:6px;font:500 13px var(--font-body);color:var(--ink-3)}
+.chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
+.sheet-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;padding-top:4px}
+@keyframes sheetup{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+/* ---------- Ticket check-in + directions ---------- */
+.checkin{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:var(--paper)}
+.checkin>span{display:grid;gap:4px}
+.checkin-k{font:600 12px/1.2 var(--font-body);color:var(--ink-3)}
+.code{font:800 22px/1 ui-monospace,"Cascadia Mono",Consolas,"SF Mono",monospace;letter-spacing:.12em;color:var(--ink)}
+.dir-link{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--lane);text-decoration:none;white-space:nowrap}
+.dir-link .ic{width:16px;height:16px;margin:0}
+.dir-link:hover{text-decoration:underline}
+.meet .dir-link .ic{color:var(--lane)}
+.kbd{font-size:13px;color:var(--ink-2)}
+kbd{display:inline-block;min-width:22px;padding:2px 6px;border-radius:6px;border:1.5px solid var(--line);border-bottom-width:3px;background:var(--card);font:700 12px/1.2 var(--font-body);color:var(--ink);text-align:center}
+
+/* ---------- Pace level + privacy ---------- */
+.pace-note{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--ink-2)}
+.pace-note .ic{width:18px;height:18px;margin-top:1px;color:var(--lane)}
+.pace-note strong{color:var(--ink)}
+.privacy{display:flex;gap:8px;align-items:flex-start}
+.privacy .ic{width:16px;height:16px;margin-top:2px;color:var(--lane)}
+
+/* ---------- Assistant ---------- */
+.ask-head{display:grid;gap:6px;padding-top:18px;padding-bottom:6px}
+.ask-head-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.engine{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--lane-tint);color:var(--lane-deep);font:700 12px/1 var(--font-body)}
+.engine .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.engine.off{background:var(--hivis-tint);color:var(--ink)}
+.msgs{display:grid;gap:12px;padding-top:8px;padding-bottom:14px}
+.msg{max-width:88%;padding:12px 14px;border-radius:18px;font-size:15px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg-user{justify-self:end;background:var(--lane);color:var(--on-lane);border-bottom-right-radius:6px}
+.msg-bot{justify-self:start;background:var(--card);color:var(--ink);border-bottom-left-radius:6px;box-shadow:var(--shadow)}
+.who{display:flex;align-items:center;gap:6px;margin-bottom:6px;font:700 12px/1 var(--font-body);color:var(--lane);white-space:normal}
+.who .ic{width:14px;height:14px}
+.who small{font:600 11px/1 var(--font-body);color:var(--ink-3)}
+.msg-note{display:block;margin-top:8px;font-size:12px;color:var(--ink-3);white-space:normal}
+.ask-rides{display:grid;gap:6px;margin-top:10px;white-space:normal}
+.ask-ride{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--paper);color:var(--ink);text-decoration:none;font-weight:700;font-size:14px}
+.ask-ride:hover{background:var(--lane-tint)}
+.ask-ride span{margin-left:auto;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.typing{display:inline-flex;gap:5px;padding:4px 0}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--ink-3);animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.suggest{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:16px}
+.suggest .chip{padding:9px 12px;font-size:13px;line-height:1.25;white-space:normal;text-align:left}
+.dock{position:sticky;bottom:0;z-index:6;margin-top:auto}
+.dock .tabbar{position:static}
+.composer{margin:0;display:flex;align-items:center;gap:8px;padding:10px var(--gutter-r) 10px var(--gutter);background:color-mix(in srgb,var(--paper) 94%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+.composer input{flex:1;min-width:0;height:46px;padding:0 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:500 15px/1 var(--font-body)}
+.composer input::placeholder{color:var(--ink-3)}
+.composer input:focus{outline:none;border-color:var(--lane);box-shadow:0 0 0 3px color-mix(in srgb,var(--lane) 25%,transparent)}
+.send{flex:none;display:grid;place-items:center;width:46px;height:46px;padding:0;border:0;border-radius:14px;background:var(--lane);color:var(--on-lane);cursor:pointer}
+.send .ic{width:20px;height:20px}
+
+/* ---------- Assistant extras: actions, follow-ups, voice, floating bot ---------- */
+.bot-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;white-space:normal}
+.bot-act{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:700 13px/1 var(--font-body);text-decoration:none;cursor:pointer}
+.bot-act .ic{width:15px;height:15px}
+.bot-act:hover{border-color:var(--ink-3)}
+.bot-act.primary{background:var(--lane);border-color:var(--lane);color:var(--on-lane)}
+.bot-act.done{border-style:dashed;color:var(--ink-2);cursor:default}
+.msg-tools{display:flex;flex-wrap:wrap;gap:2px;margin:8px -6px -4px;white-space:normal}
+.mini-btn{display:inline-flex;align-items:center;gap:4px;min-height:30px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--ink-2);font:600 12px/1 var(--font-body);cursor:pointer}
+.mini-btn:hover{background:var(--paper);color:var(--ink)}
+.mini-btn .ic{width:14px;height:14px}
+.mini-btn[aria-pressed="true"]{color:var(--lane)}
+.suggest-label{width:100%;font:700 12px/1 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.send.mic{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+.send.mic[aria-pressed="true"]{background:var(--alert);border-color:var(--alert);color:var(--on-lane);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--alert) 25%,transparent)}}
+#stream-text:empty{display:none}
+#stream-text{display:block;white-space:pre-wrap}
+.bot-fab{position:absolute;right:16px;bottom:20px;z-index:8;display:grid;place-items:center;width:56px;height:56px;padding:0;border:0;border-radius:50%;background:var(--ink);color:var(--paper);box-shadow:0 8px 20px rgba(0,0,0,.25);cursor:pointer;animation:fadein .25s ease both}
+.bot-fab.raised{bottom:96px}
+.bot-fab .ic{width:24px;height:24px}
+/* Room at the end of ride screens so nothing has to stay under the floating bot. */
+.scroller[data-view="ride"] .stack-lg,.scroller[data-view="join"] .stack-lg{padding-bottom:92px}
+.scroller[data-view="done"] .done{padding-bottom:96px}
+.bot-fab:hover{transform:translateY(-1px)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:999px){
+  .stage{grid-template-columns:auto}
+  .intro{display:none}
+}
+@media (max-width:519px){
+  html,body{height:auto}
+  body{background:var(--paper)}
+  .stage{display:block;height:auto;padding-block:0;padding-left:0;padding-right:0}
+  .device{width:auto;height:auto;min-height:0;padding:0;border-radius:0;background:transparent;box-shadow:none}
+  .screen{height:auto;border-radius:0;overflow:visible}
+  .statusbar{display:none}
+  .scroller{min-height:100vh;overflow:visible}
+  @supports (min-height:100dvh){.scroller{min-height:100dvh}}
+  .toast{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+  .sheet-wrap{position:fixed}
+  .bot-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+  .bot-fab.raised{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .screen[data-fab="raised"] .toast{bottom:calc(168px + env(safe-area-inset-bottom,0px))}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .route-line{stroke-dashoffset:0}
+  .confetti{display:none}
+}
+</style>
+
+<div class="stage">
+  <aside class="intro" aria-label="About this prototype">
+    <div class="brand brand-lg"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 4.5v23M4.5 16h23M7.9 7.9l16.2 16.2M24.1 7.9 7.9 24.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="16" r="3.2" fill="currentColor"/></svg><span>Spoke</span></div>
+    <p class="intro-lede">Group rides for people who are new to riding in Chicago.</p>
+    <p class="intro-body">This is a clickable prototype. Pick a ride, read how it works, join it, and get your ride ticket.</p>
+    <ol class="flow" id="flow" aria-label="Screens in this prototype">
+      <li data-step="home"><span>Home</span></li>
+      <li data-step="ride"><span>Details</span></li>
+      <li data-step="join"><span>Join</span></li>
+      <li data-step="done"><span>Done</span></li>
+    </ol>
+    <ul class="try" aria-label="Things to try">
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Save a ride with the heart</li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>Search for a park or trail</li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Join the waitlist for a full ride</li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg>Get rides picked for you</li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>See rides on a map</li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5z"/></svg>Ask the assistant which ride fits you</li>
+      <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Switch to dark mode</li>
+    </ul>
+    <p class="kbd">Keyboard: <kbd>/</kbd> search · <kbd>Esc</kbd> back</p>
+    <div class="intro-actions">
+      <button type="button" class="btn btn-ghost btn-sm" data-action="restart" id="restart">Start over</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-action="theme" data-theme-label="long">Dark mode</button>
+    </div>
+  </aside>
+
+  <div class="device">
+    <div class="screen">
+      <div class="statusbar" aria-hidden="true">
+        <span>9:41</span>
+        <span class="sb-icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2" fill="currentColor"/><rect x="25" y="4.5" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".4"/></svg>
+        </span>
+      </div>
+      <main class="scroller" id="app"></main>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <button type="button" class="bot-fab" id="bot-fab" data-action="ask-about" title="Ask Spoke" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4V5z"/><path d="M8 9.5h8M8 12.5h5"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------- Icons ---------- */
+  const PATHS = {
+    back: '<path d="M15 18l-6-6 6-6"/>',
+    chev: '<path d="M9 6l6 6-6 6"/>',
+    pin: '<path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/>',
+    shield: '<path d="M12 3l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/>',
+    coffee: '<path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/>',
+    light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+    route: '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/>',
+    bike: '<circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9l3 7.5M14 5.5h2.5L15 9"/>',
+    road: '<circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9.5 9h7l2 7.5M9.5 9l3 7.5h-7M15 6h2.5a1.5 1.5 0 0 1 0 3"/>',
+    bolt: '<path d="M13 3 5 14h6l-1 7 8-11h-6l1-7z"/>',
+    dock: '<path d="M4 20h16M6 20V9l6-5 6 5v11"/><circle cx="12" cy="13" r="2.5"/>',
+    heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+    share: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>',
+    moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+    ticket: '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2.5a2.5 2.5 0 0 0 0 5V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5a2.5 2.5 0 0 0 0-5V7z"/><path d="M14 6v2M14 11v2M14 16v2"/>',
+    drill: '<path d="M4 18h3l9-9-3-3-9 9v3z"/><path d="M12 7l3 3M17 4l3 3"/>',
+    spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z"/>',
+    list: '<path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+    map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>',
+    chevdown: '<path d="M6 9l6 6 6-6"/>',
+    nav: '<path d="M3 11l18-8-8 18-2-8-8-2z"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4V5z"/><path d="M8 9.5h8M8 12.5h5"/>',
+    send: '<path d="M4 12l16-8-6 16-2.5-6.5L4 12z"/>',
+    stop: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
+    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+    speaker: '<path d="M4 9h4l5-4v14l-5-4H4V9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'
+  };
+  const icon = (n) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${PATHS[n] || ""}</svg>`;
+  const LOGO = '<svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 4.5v23M4.5 16h23M7.9 7.9l16.2 16.2M24.1 7.9 7.9 24.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="16" r="3.2" fill="currentColor"/></svg>';
+  const plain = (s) => s.replace(/&amp;/g, "&");
+
+  /* ---------- Sample content (fictional riders and leaders) ---------- */
+  const USER = { first: "Sam", initials: "SK", area: "Lincoln Park, Chicago" };
+
+  const RIDES = [
+    {
+      id: 1, order: 1, mapPos: [75, 80], place: "Buckingham Fountain, Chicago", name: "Lakefront Sunrise Roll",
+      level: "Steady", repeats: "Every Saturday", keys: ["lakefront", "sunrise", "buckingham", "grant park", "maya", "fullerton"],
+      day: "Saturday", dayShort: "Sat", time: "8:00 AM", arrive: "7:50 AM", dayBefore: "Friday", introDay: "Thursday",
+      meet: "Buckingham Fountain", area: "Grant Park",
+      distance: "9.4", pace: "10–12", climb: 35, duration: "About 1 hr", terrain: "Flat",
+      tags: ["weekend"], spots: 4, capacity: 12, waitlist: 0,
+      leader: { name: "Maya Ortiz", first: "Maya", initials: "MO", led: 48, face: "f1",
+        quote: "“I didn’t join a group ride until I was 31. On my rides, nobody gets left at a red light.”" },
+      sweep: { name: "Dev Patel", first: "Dev" },
+      faces: [["AL", "f2"], ["JK", "f3"], ["RT", "f4"], ["NS", "f1"]],
+      plan: [
+        { icon: "users", text: "<strong>No-drop.</strong> We regroup at every turn, so nobody rides alone." },
+        { icon: "shield", text: "<strong>Dev Patel rides at the back</strong> as sweep, with a pump and spare tubes." },
+        { icon: "coffee", text: "<strong>Halfway break</strong> at Theater on the Lake, mile 4.7." }
+      ],
+      bring: [{ t: "Helmet", n: "Required", req: true }, { t: "Water bottle" }, { t: "Gloves", n: "Mornings by the lake run cold" }, { t: "A windproof layer" }],
+      dockNote: "Dock on Columbus Dr, 2 min from the start",
+      routeNote: "Out and back on the Lakefront Trail to Fullerton Ave",
+      map: { lake: true, parks: [[146, 118, 64, 52], [176, 0, 58, 44]], route: "M200 148 C 208 120, 216 92, 223 64 S 233 30, 237 20", start: [200, 148], turn: [237, 20] }
+    },
+    {
+      id: 2, order: 3, mapPos: [48, 38], place: "Walsh Park, Chicago", name: "Coffee &amp; Cranks on The 606",
+      level: "Easy", repeats: "Every Sunday", keys: ["606", "coffee", "cranks", "walsh", "jordan", "bucktown"],
+      day: "Sunday", dayShort: "Sun", time: "10:00 AM", arrive: "9:50 AM", dayBefore: "Saturday", introDay: "Friday",
+      meet: "Walsh Park", area: "The 606 trailhead",
+      distance: "6.2", pace: "8–10", climb: 20, duration: "About 50 min", terrain: "No cars",
+      tags: ["weekend", "short"], spots: 2, capacity: 10, waitlist: 0,
+      leader: { name: "Jordan Lee", first: "Jordan", initials: "JL", led: 23, face: "f3",
+        quote: "“We ride the whole 606 at conversation pace, then argue about the best pastry on Damen.”" },
+      sweep: { name: "Ana Ruiz", first: "Ana" },
+      faces: [["BW", "f1"], ["CH", "f4"], ["OM", "f2"], ["TP", "f3"]],
+      plan: [
+        { icon: "users", text: "<strong>No-drop.</strong> We wait at every ramp onto the trail." },
+        { icon: "shield", text: "<strong>Ana Ruiz rides at the back</strong> as sweep." },
+        { icon: "coffee", text: "<strong>Coffee after</strong> on Damen Ave. It’s optional, and nobody minds if you skip it." }
+      ],
+      bring: [{ t: "Helmet", n: "Required", req: true }, { t: "A bell", n: "The trail is shared with walkers" }, { t: "Water bottle" }, { t: "Bike lock", n: "For the coffee stop" }],
+      dockNote: "Dock at Ashland &amp; Bloomingdale, 1 min away",
+      routeNote: "The full length of The 606 and back, with no cars",
+      map: { lake: false, parks: [[284, 92, 46, 34], [56, 96, 40, 30]], route: "M300 84 C 250 80, 200 88, 150 82 S 70 78, 40 82", start: [300, 84], turn: [40, 82] }
+    },
+    {
+      id: 3, order: 4, mapPos: [44, 56], place: "Wicker Park, Chicago", name: "Tuesday Lights Loop",
+      level: "Relaxed", repeats: "Every Tuesday", keys: ["lights loop", "tuesday", "wicker", "priya"],
+      day: "Tuesday", dayShort: "Tue", time: "6:30 PM", arrive: "6:20 PM", dayBefore: "Monday", introDay: "Sunday",
+      meet: "Wicker Park fountain", area: "Wicker Park",
+      distance: "5.1", pace: "9–11", climb: 15, duration: "About 40 min", terrain: "Bike lanes",
+      tags: ["short", "evening"], spots: 9, capacity: 14, waitlist: 0,
+      leader: { name: "Priya Shah", first: "Priya", initials: "PS", led: 61, face: "f2",
+        quote: "“Riding after dark feels safer in a group. I check every light before we roll.”" },
+      sweep: { name: "Marcus Bell", first: "Marcus" },
+      faces: [["EG", "f3"], ["LK", "f1"], ["DM", "f4"], ["YT", "f2"]],
+      plan: [
+        { icon: "users", text: "<strong>No-drop.</strong> The whole group stops together at every red light." },
+        { icon: "shield", text: "<strong>Marcus Bell rides at the back</strong> as sweep." },
+        { icon: "light", text: "<strong>Light check</strong> at 6:25 PM. Priya brings spare lights." }
+      ],
+      bring: [{ t: "Helmet", n: "Required", req: true }, { t: "Front and rear lights", n: "Required after dark", req: true }, { t: "Something reflective" }, { t: "Water bottle" }],
+      dockNote: "Dock at Damen &amp; Schiller, 2 min away",
+      routeNote: "A loop through Wicker Park and Bucktown on protected bike lanes",
+      map: { lake: false, parks: [[148, 118, 44, 32]], route: "M170 110 H280 V30 H100 V110 Z", start: [170, 110], turn: null }
+    },
+    {
+      id: 4, order: 2, mapPos: [20, 54], place: "Humboldt Park Boathouse, Chicago", name: "First-Timer Skills Clinic",
+      level: "Starter", repeats: "Every Saturday", keys: ["clinic", "skills", "humboldt", "tomás", "tomas", "boathouse"],
+      day: "Saturday", dayShort: "Sat", time: "11:00 AM", arrive: "10:50 AM", dayBefore: "Friday", introDay: "Thursday",
+      meet: "Humboldt Park boathouse", area: "Humboldt Park",
+      distance: "3.2", pace: "6–8", climb: 10, duration: "About 1.5 hr", terrain: "Park paths",
+      tags: ["weekend", "short"], spots: 0, capacity: 8, waitlist: 2,
+      leader: { name: "Tomás Reyes", first: "Tomás", initials: "TR", led: 35, face: "f4",
+        quote: "“We practice starting, stopping and signaling in a quiet park before anyone rides on a street.”" },
+      sweep: { name: "Grace Kim", first: "Grace" },
+      faces: [["HN", "f2"], ["IW", "f1"], ["QA", "f3"], ["VB", "f4"]],
+      plan: [
+        { icon: "users", text: "<strong>No-drop.</strong> Slow loops around the lagoon, with a stop between drills." },
+        { icon: "shield", text: "<strong>Grace Kim rides at the back</strong> as sweep." },
+        { icon: "drill", text: "<strong>Drills:</strong> shoulder checks, hand signals and riding in a line." }
+      ],
+      bring: [{ t: "Helmet", n: "Required", req: true }, { t: "Water bottle" }, { t: "Closed-toe shoes" }],
+      dockNote: "Dock at the boathouse, 1 min away",
+      routeNote: "Slow loops around the Humboldt Park lagoon",
+      map: { lake: false, pond: true, parks: [[50, 18, 240, 134]], route: "M115 85 a65 38 0 1 0 130 0 a65 38 0 1 0 -130 0", start: [115, 85], turn: null }
+    }
+  ];
+
+  const BIKES = [
+    { id: "road", label: "Road bike", note: "Drop bars, skinny tires", icon: "road" },
+    { id: "hybrid", label: "Hybrid or city bike", note: "Flat bars, upright seat", icon: "bike" },
+    { id: "ebike", label: "E-bike", note: "Welcome. We ride at the group’s pace", icon: "bolt" },
+    { id: "share", label: "Bike share", note: "", icon: "dock" }
+  ];
+  const LEVELS = [{ id: "none", label: "None yet" }, { id: "few", label: "1–3" }, { id: "many", label: "4 or more" }];
+  const FILTERS = [{ id: "all", label: "All rides" }, { id: "weekend", label: "This weekend" }, { id: "short", label: "Under 8 mi" }, { id: "evening", label: "Evenings" }];
+
+  /* ---------- State (bookings, saves and theme survive a reload) ---------- */
+  const KEY = "spoke-prototype-v2";
+  const fresh = () => ({ filter: "all", query: "", view: "list", sort: "soonest", mapSel: null, prefs: null,
+    chat: [], chatBusy: false, askDraft: "", focusAsk: false,
+    joined: {}, saved: {}, waitlist: {}, theme: null,
+    form: { bike: "hybrid", level: "none", buddy: true, remind: true } });
+  const PREF_LEVELS = [{ id: "none", label: "Brand new" }, { id: "few", label: "A little rusty" }, { id: "many", label: "I ride a lot" }];
+  const TIMES = [{ id: "weekend", label: "Weekend mornings" }, { id: "evening", label: "Weeknight evenings" }];
+  const SORTS = [{ id: "picked", label: "Picked for you" }, { id: "soonest", label: "Soonest" }, { id: "shortest", label: "Shortest ride" }, { id: "spots", label: "Most spots open" }];
+  function load() {
+    const s = fresh();
+    try {
+      const d = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (d) {
+        s.joined = d.joined || {}; s.saved = d.saved || {}; s.waitlist = d.waitlist || {};
+        s.form = { ...s.form, ...(d.form || {}) }; s.theme = d.theme || null;
+        if (d.prefs && Array.isArray(d.prefs.times)) { s.prefs = d.prefs; s.sort = "picked"; }
+      }
+    } catch (e) { /* storage blocked: start fresh */ }
+    return s;
+  }
+  function persist() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ joined: state.joined, saved: state.saved, waitlist: state.waitlist, form: state.form, theme: state.theme, prefs: state.prefs }));
+    } catch (e) { /* storage blocked: keep working in memory */ }
+  }
+
+  let state = load();
+  let firstRender = true;
+  const app = document.getElementById("app");
+  const toastEl = document.getElementById("toast");
+  const flow = document.getElementById("flow");
+  const root = document.documentElement;
+  if (!root.lang) root.lang = "en";
+  const darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  if (state.theme) root.dataset.theme = state.theme;
+
+  const byId = (id) => RIDES.find((r) => r.id === id);
+  const spotsLeft = (r) => Math.max(0, r.spots - (state.joined[r.id] ? 1 : 0));
+  const isFull = (r) => !state.joined[r.id] && r.spots <= 0;
+  const goingCount = (r) => r.capacity - spotsLeft(r);
+  const waitPos = (r) => r.waitlist + 1;
+  const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  const isDark = () => root.dataset.theme === "dark" || (!root.dataset.theme && !!darkQuery && darkQuery.matches);
+  const myCount = () => Object.keys(state.joined).length + Object.keys(state.waitlist).length;
+  const savedCount = () => Object.keys(state.saved).length;
+
+  // How well a ride fits the rider's answers. 3+ counts as "Picked for you".
+  function score(r) {
+    const p = state.prefs;
+    if (!p) return 0;
+    const paceMax = parseInt(r.pace.split("–")[1], 10);
+    let s = 0;
+    if (p.level === "none") { if (paceMax <= 10) s += 2; if (r.id === 4) s += 1; }
+    else if (p.level === "few") { if (paceMax <= 11) s += 2; }
+    else if (Number(r.distance) >= 6) s += 2;
+    if (p.times.includes("weekend") && r.tags.includes("weekend")) s += 1;
+    if (p.times.includes("evening") && r.tags.includes("evening")) s += 2;
+    return s;
+  }
+  const isPick = (r) => score(r) >= 3;
+  const SORTERS = {
+    soonest: (a, b) => a.order - b.order,
+    shortest: (a, b) => a.distance - b.distance,
+    spots: (a, b) => spotsLeft(b) - spotsLeft(a) || a.order - b.order,
+    picked: (a, b) => score(b) - score(a) || a.order - b.order
+  };
+  const mapsUrl = (r) => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(r.place);
+  const prefSummary = () => {
+    const p = state.prefs;
+    const lvl = (PREF_LEVELS.find((l) => l.id === p.level) || PREF_LEVELS[0]).label;
+    const times = p.times.map((t) => TIMES.find((x) => x.id === t).label.toLowerCase()).join(", ");
+    return times ? `${lvl}, ${times}` : lvl;
+  };
+
+  function visibleRides() {
+    const q = state.query.trim().toLowerCase();
+    return RIDES.filter((r) =>
+      (state.filter === "all" || r.tags.includes(state.filter)) &&
+      (!q || plain([r.name, r.meet, r.area, r.terrain, r.leader.name, r.routeNote].join(" ")).toLowerCase().includes(q)))
+      .sort(SORTERS[state.sort] || SORTERS.soonest);
+  }
+
+  function faces(r, max) {
+    const list = (state.joined[r.id] ? [[USER.initials, "me"]] : []).concat(r.faces);
+    const shown = list.slice(0, max);
+    const extra = goingCount(r) - shown.length;
+    return shown.map(([t, c]) => `<span class="face ${c}">${t}</span>`).join("") +
+      (extra > 0 ? `<span class="face more">+${extra}</span>` : "");
+  }
+
+  /* ---------- Shared pieces ---------- */
+  const saveBtn = (r) => `<button type="button" class="round-btn save-btn" data-action="save" data-id="${r.id}" aria-pressed="${!!state.saved[r.id]}" aria-label="Save ${plain(r.name)}">${icon("heart")}</button>`;
+  const themeBtn = () => `<button type="button" class="round-btn" data-action="theme" aria-label="Switch to dark mode">${icon("moon")}</button>`;
+
+  function tabbar(current) {
+    const badge = (n) => (n ? `<span class="tab-badge">${n}</span>` : "");
+    const tab = (id, href, ic, label, n) =>
+      `<a class="tab" href="${href}" data-tab="${id}"${current === id ? ' aria-current="page"' : ""}>${icon(ic)}<span>${label}</span>${badge(n)}</a>`;
+    return `<nav class="tabbar" aria-label="Main">
+      ${tab("home", "#home", "bike", "Rides", 0)}
+      ${tab("saved", "#saved", "heart", "Saved", savedCount())}
+      ${tab("ask", "#ask", "chat", "Ask", 0)}
+      ${tab("mine", "#mine", "ticket", "My rides", myCount())}
+    </nav>`;
+  }
+
+  function statusPill(r) {
+    if (state.joined[r.id]) return `<span class="pill pill-going">${icon("check")} You’re going</span>`;
+    if (state.waitlist[r.id]) return `<span class="pill pill-going">${icon("clock")} Waitlist #${waitPos(r)}</span>`;
+    if (isFull(r)) return `<span class="pill pill-alert">Full · waitlist open</span>`;
+    const left = spotsLeft(r);
+    return `<span class="pill${left <= 3 ? " pill-alert" : ""}">${plural(left, "spot")} left</span>`;
+  }
+
+  /* ---------- Views ---------- */
+  function rideCard(r) {
+    return `
+      <article class="ride-card" data-ride="${r.id}">
+        <div class="rc-top"><span class="rc-when">${r.dayShort} · ${r.time}</span><span class="rc-right">${statusPill(r)}${saveBtn(r)}</span></div>
+        <a class="rc-link rc-name" href="#ride-${r.id}">${r.name}</a>
+        <span class="rc-meet">${icon("pin")} ${r.meet}, ${r.area}</span>
+        <span class="rc-stats">${isPick(r) ? `<span class="stat-pick" title="Picked for you">${icon("spark")}<span class="sr-only">Picked </span>For you</span>` : ""}<span>${r.distance} mi</span><span>${r.pace} mph</span><span>${r.terrain}</span></span>
+        <span class="rc-foot">
+          <span class="faces" aria-hidden="true">${faces(r, 3)}</span>
+          <span class="rc-going">${goingCount(r)} going</span>
+          <span class="rc-go" aria-hidden="true">Details ${icon("chev")}</span>
+        </span>
+      </article>`;
+  }
+
+  const emptyState = (ic, title, body, cta) => `
+    <div class="empty-state">
+      <span class="empty-ic">${icon(ic)}</span>
+      <strong>${title}</strong>
+      <p>${body}</p>
+      ${cta || ""}
+    </div>`;
+
+  function listHTML() {
+    const rs = visibleRides();
+    if (!rs.length) return emptyState("search", "No rides match", "Try another word or filter.", `<button type="button" class="btn btn-ghost btn-sm" data-action="clear-filters">Show all rides</button>`);
+    return state.view === "map" ? mapViewHTML(rs) : rs.map(rideCard).join("");
+  }
+
+  function cityMapSVG() {
+    const streets = [34, 68, 102, 136, 170, 204].map((y) => `<path d="M0 ${y}H340"/>`).join("") +
+      [40, 85, 130, 175, 220, 265].map((x) => `<path d="M${x} 0V240"/>`).join("");
+    return `
+      <svg viewBox="0 0 340 240" aria-hidden="true">
+        <rect width="340" height="240" fill="var(--map-land)"/>
+        <g stroke="var(--map-street)" stroke-width="4" fill="none">${streets}</g>
+        <path d="M30 236 L 262 20" stroke="var(--map-street)" stroke-width="7" fill="none"/>
+        <rect x="226" y="18" width="40" height="96" rx="8" fill="var(--map-park)"/>
+        <rect x="42" y="112" width="52" height="38" rx="8" fill="var(--map-park)"/>
+        <rect x="236" y="176" width="44" height="44" rx="8" fill="var(--map-park)"/>
+        <path d="M120 82 H 300" stroke="var(--lane)" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round" opacity=".55"/>
+        <path d="M268 0H340V240H284C278 180 272 90 268 0Z" fill="var(--map-water)"/>
+        <text x="316" y="120" transform="rotate(90 316 120)" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="2" fill="var(--ink-3)">LAKE MICHIGAN</text>
+      </svg>`;
+  }
+
+  function mapViewHTML(rs) {
+    const sel = rs.find((r) => r.id === state.mapSel) || rs[0];
+    const pins = rs.map((r) => `<button type="button" class="pin${isFull(r) ? " pin-full" : ""}${state.joined[r.id] ? " pin-going" : ""}" style="left:${r.mapPos[0]}%;top:${r.mapPos[1]}%" data-action="pin" data-id="${r.id}" aria-pressed="${r.id === sel.id}" aria-label="${plain(r.name)}, ${r.dayShort} ${r.time}, ${r.distance} miles">${r.distance}</button>`).join("");
+    return `
+      <div class="citymap" role="group" aria-label="Map of rides near you">
+        ${cityMapSVG()}
+        <span class="you-dot" style="left:71%;top:27%" aria-hidden="true"></span>
+        ${pins}
+      </div>
+      <p class="map-legend"><span class="you-key" aria-hidden="true"></span> You are here · pins show ride length in miles</p>
+      ${rideCard(sel)}`;
+  }
+
+  const sortOptions = () => SORTS.filter((s) => s.id !== "picked" || state.prefs)
+    .map((s) => `<option value="${s.id}"${s.id === state.sort ? " selected" : ""}>${s.label}</option>`).join("");
+
+  function homeView() {
+    const chips = FILTERS.map((f) =>
+      `<button type="button" class="chip" data-action="filter" data-value="${f.id}" aria-pressed="${f.id === state.filter}">${f.label}</button>`).join("");
+    return `
+      <header class="topbar">
+        <span class="brand">${LOGO}<span>Spoke</span></span>
+        <span class="topbar-actions">${themeBtn()}<span class="avatar" role="img" aria-label="Signed in as ${USER.first}">${USER.initials}</span></span>
+      </header>
+      <div class="pad hello">
+        <p class="greet">Good morning, ${USER.first}</p>
+        <h1 class="display" tabindex="-1">Your first group ride starts here.</h1>
+        <p class="loc">${icon("pin")} ${USER.area} · within 4 mi</p>
+      </div>
+      <div class="search" role="search">
+        ${icon("search")}
+        <label class="sr-only" for="search">Search rides</label>
+        <input type="search" id="search" placeholder="Search rides, parks or trails" autocomplete="off" value="${state.query.replace(/"/g, "&quot;")}">
+      </div>
+      <div class="chips" role="group" aria-label="Filter rides">${chips}</div>
+      <div class="pad stack">
+        ${nextRideCard()}
+        ${state.prefs
+          ? `<button type="button" class="tune tune-set" data-action="open-sheet">${icon("spark")}<span><strong>Picks tuned for you</strong><span>${prefSummary()} · Edit</span></span></button>`
+          : `<button type="button" class="tune" data-action="open-sheet">${icon("spark")}<span><strong>Get rides picked for you</strong><span>Answer 3 quick questions</span></span>${icon("chev")}</button>`}
+        <aside class="nodrop">
+          <span class="nodrop-badge">${icon("users")}</span>
+          <p><strong>Every Spoke ride is no-drop.</strong> The group waits at each turn, and a sweep rider stays at the back.</p>
+        </aside>
+        <div class="list-head">
+          <h2 class="section-title">This week near you <span class="count" id="ride-count" aria-live="polite">${plural(visibleRides().length, "ride")}</span></h2>
+          <div class="toolbar">
+            <div class="view-toggle" role="group" aria-label="Show rides as">
+              <button type="button" data-action="view" data-value="list" aria-pressed="${state.view === "list"}">${icon("list")} List</button>
+              <button type="button" data-action="view" data-value="map" aria-pressed="${state.view === "map"}">${icon("map")} Map</button>
+            </div>
+            <label class="sort"><span class="sr-only">Sort rides</span><select id="sort">${sortOptions()}</select>${icon("chevdown")}</label>
+          </div>
+        </div>
+        <div class="ride-list" id="ride-list">${listHTML()}</div>
+      </div>
+      ${tabbar("home")}`;
+  }
+
+  function nextRideCard() {
+    const next = RIDES.filter((r) => state.joined[r.id]).sort((a, b) => a.order - b.order)[0];
+    if (!next) return "";
+    return `
+      <a class="next" href="#done-${next.id}" data-next="${next.id}">
+        <span class="next-ic">${icon("ticket")}</span>
+        <span class="next-text"><span class="next-k">Your next ride · ${next.dayShort} ${next.time}</span><strong>${next.name}</strong></span>
+        ${icon("chev")}
+      </a>`;
+  }
+
+  function savedView() {
+    const rs = RIDES.filter((r) => state.saved[r.id]);
+    return `
+      <div class="pad page-head">
+        <p class="eyebrow">Saved</p>
+        <h1 class="h1" tabindex="-1">Rides you’re thinking about</h1>
+      </div>
+      <div class="pad stack">
+        <div class="ride-list" id="saved-list">${rs.length ? rs.map(rideCard).join("") :
+          emptyState("heart", "Nothing saved yet", "Tap the heart on any ride to keep it here.", `<a class="btn btn-primary btn-sm" href="#home">Browse rides</a>`)}</div>
+      </div>
+      ${tabbar("saved")}`;
+  }
+
+  function mineView() {
+    const joined = RIDES.filter((r) => state.joined[r.id]);
+    const waiting = RIDES.filter((r) => state.waitlist[r.id]);
+    const ticketCard = (r) => {
+      const bike = BIKES.find((b) => b.id === state.joined[r.id].bike) || BIKES[1];
+      return `
+        <a class="mine-card" href="#done-${r.id}" data-mine="${r.id}">
+          <span class="rc-top"><span class="rc-when">${r.dayShort} · ${r.time}</span><span class="pill pill-going">${icon("check")} Going</span></span>
+          <span class="rc-name">${r.name}</span>
+          <span class="rc-meet">${icon("pin")} ${r.meet}, ${r.area}</span>
+          <span class="mine-foot">${icon("ticket")}<span>View ticket</span><span>${bike.label}</span></span>
+        </a>`;
+    };
+    const waitCard = (r) => `
+        <a class="mine-card" href="#ride-${r.id}" data-mine="${r.id}">
+          <span class="rc-top"><span class="rc-when">${r.dayShort} · ${r.time}</span><span class="pill pill-hivis">Waitlist #${waitPos(r)}</span></span>
+          <span class="rc-name">${r.name}</span>
+          <span class="rc-meet">${icon("pin")} ${r.meet}, ${r.area}</span>
+          <span class="mine-foot">${icon("clock")}<span>We’ll tell you if a spot opens</span></span>
+        </a>`;
+    const body = joined.length || waiting.length
+      ? `${joined.length ? `<h2 class="section-title">Going <span class="count">${plural(joined.length, "ride")}</span></h2><div class="ride-list">${joined.map(ticketCard).join("")}</div>` : ""}
+         ${waiting.length ? `<h2 class="section-title">On the waitlist</h2><div class="ride-list">${waiting.map(waitCard).join("")}</div>` : ""}`
+      : emptyState("ticket", "No rides yet", "When you join a ride, your ticket shows up here.", `<a class="btn btn-primary btn-sm" href="#home">Find a ride</a>`);
+    return `
+      <div class="pad page-head">
+        <p class="eyebrow">My rides</p>
+        <h1 class="h1" tabindex="-1">Your tickets</h1>
+      </div>
+      <div class="pad stack">${body}</div>
+      ${tabbar("mine")}`;
+  }
+
+  function mapSVG(r) {
+    const m = r.map;
+    const streets = [30, 70, 110, 150].map((y) => `<path d="M0 ${y}H340"/>`).join("") +
+      [40, 100, 160, 220, 280].map((x) => `<path d="M${x} 0V170"/>`).join("");
+    const parks = m.parks.map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="var(--map-park)"/>`).join("");
+    const lake = m.lake ? `<path d="M250 0H340V170H214C226 120 236 70 250 0Z" fill="var(--map-water)"/>` : "";
+    const pond = m.pond ? `<ellipse cx="180" cy="85" rx="44" ry="20" fill="var(--map-water)"/>` : "";
+    const turn = m.turn ? `<circle cx="${m.turn[0]}" cy="${m.turn[1]}" r="6" fill="var(--card)" stroke="var(--lane)" stroke-width="3"/>` : "";
+    return `
+      <svg viewBox="0 0 340 170" role="img" aria-label="Route map. ${plain(r.routeNote)}.">
+        <rect width="340" height="170" fill="var(--map-land)"/>
+        <g stroke="var(--map-street)" stroke-width="5" fill="none">${streets}</g>
+        ${parks}${lake}${pond}
+        <path class="route-line" d="${m.route}" fill="none" stroke="var(--lane)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" pathLength="900"/>
+        ${turn}
+        <circle cx="${m.start[0]}" cy="${m.start[1]}" r="10" fill="var(--hivis)" stroke="#15211B" stroke-width="2.5"/>
+        <circle cx="${m.start[0]}" cy="${m.start[1]}" r="3" fill="#15211B"/>
+      </svg>`;
+  }
+
+  function rideCTA(r) {
+    const left = spotsLeft(r);
+    if (state.joined[r.id]) return `
+      <div class="cta-joined">
+        <span class="pill pill-going">${icon("check")} You’re going</span>
+        <button type="button" class="link link-danger" data-action="release" data-id="${r.id}">Release my spot</button>
+      </div>
+      <a class="btn btn-primary" href="#done-${r.id}" data-cta="ticket">View my ticket</a>`;
+    if (state.waitlist[r.id]) return `
+      <div class="cta-meta"><strong>Waitlist #${waitPos(r)}</strong><span>We’ll tell you if a spot opens</span></div>
+      <button type="button" class="btn btn-ghost" data-action="unwait" data-id="${r.id}">Leave waitlist</button>`;
+    if (isFull(r)) return `
+      <div class="cta-meta"><strong>Full</strong><span>${r.waitlist === 1 ? "1 person" : r.waitlist + " people"} waiting</span></div>
+      <button type="button" class="btn btn-primary" data-action="waitlist" data-id="${r.id}">Join the waitlist</button>`;
+    return `
+      <div class="cta-meta"><strong>Free</strong><span>${left} of ${r.capacity} spots left</span></div>
+      <a class="btn btn-primary" href="#join-${r.id}" data-cta="join">Join this ride</a>`;
+  }
+
+  function rideView(r) {
+    const left = spotsLeft(r);
+    return `
+      <header class="appbar">
+        <a class="icon-btn" href="#home" aria-label="Back to rides" data-back>${icon("back")}</a>
+        <span class="appbar-title">Ride details</span>
+        <span class="appbar-actions">
+          <button type="button" class="round-btn" data-action="share" data-id="${r.id}" aria-label="Share this ride">${icon("share")}</button>
+          ${saveBtn(r)}
+        </span>
+      </header>
+      <div class="pad stack-lg">
+        <figure class="map">${mapSVG(r)}<figcaption>${icon("route")} ${r.routeNote}</figcaption></figure>
+        <div class="titleblock">
+          <p class="eyebrow">${r.day} · ${r.time}</p>
+          <h1 class="h1" tabindex="-1">${r.name}</h1>
+          <p class="meet">${icon("pin")}<span>Meet at <strong>${r.meet}</strong>, ${r.area}. Arrive by ${r.arrive}. <a class="dir-link" href="${mapsUrl(r)}" target="_blank" rel="noopener" data-dir>${icon("nav")} Directions</a></span></p>
+          <p class="pace-note" data-pace>${icon("clock")}<span><strong>${r.level} pace.</strong> ${r.pace} mph is the average while moving, not counting stops. ${r.repeats}.</span></p>
+        </div>
+        <dl class="stats">
+          <div><dt>Distance</dt><dd>${r.distance} <small>mi</small></dd></div>
+          <div><dt>Pace</dt><dd>${r.pace} <small>mph</small></dd></div>
+          <div><dt>Climbing</dt><dd>${r.climb} <small>ft</small></dd></div>
+          <div><dt>Ride time</dt><dd>${r.duration.replace("About ", "~")}</dd></div>
+        </dl>
+        <section>
+          <h2 class="section-title">How this ride works</h2>
+          <ul class="plan">${r.plan.map((p) => `<li><span class="plan-ic">${icon(p.icon)}</span><span>${p.text}</span></li>`).join("")}</ul>
+        </section>
+        <section class="leader" aria-label="Ride leader">
+          <div class="leader-head">
+            <span class="avatar avatar-lg ${r.leader.face}" aria-hidden="true">${r.leader.initials}</span>
+            <div><p class="leader-name">${r.leader.name}</p><p class="leader-meta">Ride leader · ${r.leader.led} rides led</p></div>
+          </div>
+          <blockquote>${r.leader.quote}</blockquote>
+        </section>
+        <section>
+          <h2 class="section-title">Who’s going</h2>
+          <div class="going-row">
+            <span class="faces faces-lg" aria-hidden="true">${faces(r, 5)}</span>
+            <p><strong>${goingCount(r)} riders</strong> · ${left ? plural(left, "spot") + " left" : "full"}</p>
+          </div>
+        </section>
+        <section>
+          <h2 class="section-title">What to bring</h2>
+          <ul class="bring">${r.bring.map((b) => `<li><span class="tick">${icon("check")}</span><span>${b.t}</span>${b.n ? `<span class="note${b.req ? " req" : ""}">${b.n}</span>` : ""}</li>`).join("")}</ul>
+        </section>
+      </div>
+      <div class="cta-bar">${rideCTA(r)}</div>`;
+  }
+
+  function joinView(r) {
+    const f = state.form;
+    const bikes = BIKES.map((b) => `
+      <label class="opt" for="bike-${b.id}">
+        <input type="radio" name="bike" id="bike-${b.id}" value="${b.id}"${f.bike === b.id ? " checked" : ""}>
+        <span class="opt-ic">${icon(b.icon)}</span>
+        <span class="opt-label">${b.label}</span>
+        <span class="opt-note">${b.id === "share" ? r.dockNote : b.note}</span>
+        <span class="opt-check">${icon("check")}</span>
+      </label>`).join("");
+    const levels = LEVELS.map((l) => `
+      <label class="seg-opt" for="level-${l.id}">
+        <input type="radio" name="level" id="level-${l.id}" value="${l.id}"${f.level === l.id ? " checked" : ""}>
+        <span>${l.label}</span>
+      </label>`).join("");
+    return `
+      <header class="appbar">
+        <a class="icon-btn" href="#ride-${r.id}" aria-label="Back to ride details" data-back>${icon("back")}</a>
+        <span class="appbar-title">Join ride</span>
+      </header>
+      <div class="pad stack-lg">
+        <div class="titleblock">
+          <p class="eyebrow">${r.name} · ${r.dayShort} ${r.time}</p>
+          <h1 class="h1" tabindex="-1">Tell ${r.leader.first} what you’re riding</h1>
+          <p class="sub">${r.leader.first} plans the pace and the stops around who’s coming.</p>
+        </div>
+        <fieldset class="field">
+          <legend>What are you riding?</legend>
+          <div class="bike-grid">${bikes}</div>
+        </fieldset>
+        <fieldset class="field">
+          <legend>Group rides you’ve done</legend>
+          <div class="seg">${levels}</div>
+        </fieldset>
+        <div class="toggles">
+          <label class="toggle" for="buddy">
+            <span class="toggle-text"><strong>Pair me with a ride buddy</strong><span>We’ll introduce you to another first-timer on ${r.introDay}.</span></span>
+            <input type="checkbox" role="switch" id="buddy"${f.buddy ? " checked" : ""}>
+            <span class="switch" aria-hidden="true"></span>
+          </label>
+          <label class="toggle" for="remind">
+            <span class="toggle-text"><strong>Remind me the night before</strong><span>${r.dayBefore} at 7:00 PM, with the meeting spot.</span></span>
+            <input type="checkbox" role="switch" id="remind"${f.remind ? " checked" : ""}>
+            <span class="switch" aria-hidden="true"></span>
+          </label>
+        </div>
+        <p class="fineprint">Free to join. You can release your spot up to 2 hours before the ride.</p>
+        <p class="fineprint privacy" data-privacy>${icon("shield")}<span>Only ${r.leader.first} sees your name and bike. Spoke never shows your rides or location publicly.</span></p>
+      </div>
+      <div class="cta-bar">
+        <div class="cta-meta"><strong>${plural(spotsLeft(r), "spot")} left</strong><span>${r.dayShort} · ${r.time}</span></div>
+        <button type="button" class="btn btn-primary" data-action="confirm" data-id="${r.id}">Confirm my spot</button>
+      </div>`;
+  }
+
+  function confetti() {
+    const colors = ["var(--lane)", "var(--hivis)", "var(--heart)", "var(--face-3)", "var(--lane-deep)"];
+    let out = "";
+    for (let i = 0; i < 22; i++) {
+      out += `<i style="left:${4 + (i * 41) % 92}%;background:${colors[i % colors.length]};animation-delay:${(i % 7) * 0.07}s;animation-duration:${1.3 + (i % 5) * 0.15}s"></i>`;
+    }
+    return `<div class="confetti" aria-hidden="true">${out}</div>`;
+  }
+
+  function doneView(r) {
+    const j = state.joined[r.id];
+    const bike = BIKES.find((b) => b.id === j.bike) || BIKES[1];
+    const level = LEVELS.find((l) => l.id === j.level) || LEVELS[0];
+    const buddyNote = j.buddy
+      ? `${icon("users")}<span>Ride buddy: we’ll introduce you to another first-timer on ${r.introDay}.</span>`
+      : `${icon("shield")}<span>${r.sweep.first} rides at the back as sweep, so you won’t ride alone.</span>`;
+    const remindNote = j.remind
+      ? `${icon("clock")}<span>Reminder set for ${r.dayBefore} at 7:00 PM.</span>`
+      : `${icon("calendar")}<span>No reminder set. Add the ride to your calendar below.</span>`;
+    return `
+      <div class="done pad">
+        ${confetti()}
+        <div class="done-hero" aria-hidden="true"><span class="done-wheel">${LOGO}</span><span class="done-check">${icon("check")}</span></div>
+        <div class="titleblock center">
+          <h1 class="display" tabindex="-1">You’re in, ${USER.first}!</h1>
+          <p class="sub">${r.leader.first} will look for you at ${r.meet}. Arrive by ${r.arrive}; the group rolls out at ${r.time}.</p>
+        </div>
+        <article class="ticket" aria-label="Your ride ticket">
+          <header class="ticket-head"><span class="ticket-kicker">Ride ticket</span><span class="pill pill-hivis">No-drop</span></header>
+          <h2 class="ticket-name">${r.name}</h2>
+          <dl class="ticket-grid">
+            <div><dt>When</dt><dd>${r.day}, ${r.time}</dd></div>
+            <div><dt>Meet at</dt><dd>${r.meet}</dd></div>
+            <div><dt>Your bike</dt><dd data-field="bike">${bike.label}</dd></div>
+            <div><dt>Group rides</dt><dd data-field="level">${level.label}</dd></div>
+          </dl>
+          <div class="checkin">
+            <span><span class="checkin-k">Check-in code</span><span class="code" data-field="code">SPK-${r.id}${String(goingCount(r)).padStart(2, "0")}</span><span class="checkin-k">Show ${r.leader.first} at the start</span></span>
+            <a class="dir-link" href="${mapsUrl(r)}" target="_blank" rel="noopener" data-dir>${icon("nav")} Directions</a>
+          </div>
+          <div class="ticket-tear" aria-hidden="true"></div>
+          <ul class="ticket-notes">
+            <li data-field="buddy">${buddyNote}</li>
+            <li data-field="remind">${remindNote}</li>
+          </ul>
+          <footer class="ticket-foot"><span>Rider ${goingCount(r)} of ${r.capacity}</span><span>Leader: ${r.leader.name}</span></footer>
+        </article>
+        <div class="done-actions">
+          <a class="btn btn-primary" href="#home" data-cta="home">Back to rides</a>
+          <button type="button" class="btn btn-ghost" data-action="calendar" data-id="${r.id}">${icon("calendar")} Add to calendar</button>
+          <button type="button" class="link" data-action="share" data-id="${r.id}">Invite a friend to this ride</button>
+        </div>
+      </div>`;
+  }
+
+  /* ---------- Assistant ---------- */
+  // Answers with Claude inside claude.ai (the "sample" capability, streamed as it writes).
+  // Elsewhere (a local file, or the viewer said no) a built-in helper answers from the same data.
+  // Voice in ("dictation") and read-aloud ("tts") appear only where the viewer offers them.
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const stripTags = (s) => plain(String(s).replace(/<[^>]+>/g, ""));
+  const SUGGESTIONS = [
+    "Which ride is best for a first-timer?",
+    "What should I bring?",
+    "What does no-drop mean?",
+    "Any rides on a weeknight?",
+    "I don't own a bike. Can I still come?"
+  ];
+  const SHORT = { 1: "the Lakefront ride", 2: "the 606 ride", 3: "the Lights Loop", 4: "the clinic" };
+  const followUps = (r, asked) => [
+    `What should I bring to ${SHORT[r.id]}?`,
+    `Where do we meet for ${SHORT[r.id]}?`,
+    `How long does ${SHORT[r.id]} take?`,
+    `Is ${SHORT[r.id]} good for a beginner?`
+  ].filter((q) => !asked.has(q)).slice(0, 3);
+
+  const hasClaude = !!(window.claude && typeof window.claude.use === "function");
+  const useCap = (n) => hasClaude ? Promise.resolve().then(() => window.claude.use(n)).catch(() => null) : Promise.resolve(null);
+  let aiSample = null, aiState = "checking", dict = null, tts = null, listening = false, speakingId = -1, dictBase = "";
+  let askCtl = null;
+  const aiReady = useCap("sample").then((s) => { aiSample = typeof s === "function" ? s : null; });
+  aiReady.then(() => { aiState = aiSample ? "claude" : "offline"; syncEngine(); });
+  useCap("dictation").then((d) => { if (d && typeof d.start === "function") { dict = d; wireDictation(); softRedrawAsk(); } });
+  useCap("tts").then((t) => { if (t && typeof t.speak === "function") { tts = t; wireTts(); softRedrawAsk(); } });
+
+  // The conversation survives a reload in this tab (never shared, never sent anywhere else).
+  try { const c = JSON.parse(sessionStorage.getItem("spoke-chat") || "null"); if (Array.isArray(c)) state.chat = c.slice(-40); } catch (e) { /* storage blocked */ }
+  const saveChat = () => { try { sessionStorage.setItem("spoke-chat", JSON.stringify(state.chat.slice(-40))); } catch (e) { /* storage blocked */ } };
+
+  const engineBadge = () => aiState === "claude"
+    ? `<span class="engine" id="engine"><span class="dot"></span>Answers by Claude</span>`
+    : aiState === "offline"
+      ? `<span class="engine off" id="engine"><span class="dot"></span>Built-in helper</span>`
+      : `<span class="engine off" id="engine"><span class="dot"></span>Connecting…</span>`;
+  function syncEngine() { const b = document.getElementById("engine"); if (b) b.outerHTML = engineBadge(); }
+
+  /* --- Voice --- */
+  function wireDictation() {
+    dict.onPartial(({ text }) => { const i = app.querySelector("#ask-input"); if (i) i.value = (dictBase + " " + text).trim(); });
+    dict.onFinal(({ text }) => {
+      dictBase = (dictBase + " " + text).trim();
+      state.askDraft = dictBase;
+      const i = app.querySelector("#ask-input"); if (i) i.value = dictBase;
+    });
+    dict.onState(({ state: st }) => {
+      listening = st === "listening";
+      const b = app.querySelector('[data-action="ask-mic"]');
+      if (b) { b.setAttribute("aria-pressed", String(listening)); b.setAttribute("aria-label", listening ? "Stop listening" : "Ask by voice"); }
+    });
+  }
+  function wireTts() {
+    if (typeof tts.onState === "function") tts.onState(({ state: st }) => { if (st !== "speaking" && st !== "paused") { speakingId = -1; syncSpeak(); } });
+  }
+  function syncSpeak() {
+    app.querySelectorAll('[data-action="ask-speak"]').forEach((b) => {
+      const on = Number(b.dataset.i) === speakingId;
+      b.setAttribute("aria-pressed", String(on));
+      b.lastChild.textContent = on ? " Stop" : " Read aloud";
+    });
+  }
+  function softRedrawAsk() { if (app.dataset.view === "ask" && !state.chatBusy) redrawAsk(false); }
+
+  /* --- What the assistant knows --- */
+  function appData() {
+    return {
+      rider: {
+        firstName: USER.first, area: USER.area,
+        answers: state.prefs ? { experience: (PREF_LEVELS.find((l) => l.id === state.prefs.level) || {}).label, bike: (BIKES.find((b) => b.id === state.prefs.bike) || {}).label, free: state.prefs.times } : "not answered yet",
+        joined: RIDES.filter((r) => state.joined[r.id]).map((r) => ({ rideId: r.id, bike: (BIKES.find((b) => b.id === state.joined[r.id].bike) || {}).label })),
+        waitlisted: RIDES.filter((r) => state.waitlist[r.id]).map((r) => r.id),
+        saved: RIDES.filter((r) => state.saved[r.id]).map((r) => r.id)
+      },
+      rides: RIDES.map((r) => ({
+        id: r.id, name: plain(r.name), when: `${r.day} ${r.time}`, arriveBy: r.arrive, repeats: r.repeats,
+        meetingPoint: `${r.meet}, ${r.area}`, distanceMiles: Number(r.distance), averagePaceMph: r.pace, paceLevel: r.level,
+        climbingFeet: r.climb, rideTime: r.duration, terrain: r.terrain, route: plain(r.routeNote), tags: r.tags,
+        spotsLeft: spotsLeft(r), capacity: r.capacity, full: isFull(r), peopleOnWaitlist: r.waitlist,
+        leader: { name: r.leader.name, ridesLed: r.leader.led, says: r.leader.quote }, sweepRider: r.sweep.name,
+        howItWorks: r.plan.map((p) => stripTags(p.text)), whatToBring: r.bring.map((b) => b.n ? `${b.t} (${b.n})` : b.t),
+        bikeShareDock: plain(r.dockNote), riderStatus: state.joined[r.id] ? "joined" : state.waitlist[r.id] ? "on waitlist" : "not joined",
+        savedByRider: !!state.saved[r.id], matchesRiderAnswers: isPick(r)
+      })),
+      howSpokeWorks: {
+        cost: "Every ride is free.",
+        noDrop: "No-drop: the group regroups at turns and lights, and a sweep rider stays at the very back so nobody rides alone.",
+        pace: "Pace is the average speed while moving, not counting stops. Levels from gentlest: Starter, Easy, Relaxed, Steady.",
+        joining: "Open a ride, tap Join this ride, pick your bike and experience, choose a ride buddy and reminder, then Confirm my spot. You get a ride ticket with a check-in code.",
+        releasing: "You can release your spot up to 2 hours before the ride from the ride page; Undo is available right after.",
+        waitlist: "Full rides have a waitlist. You see your position and can leave any time.",
+        buddy: "Ride buddy pairs you with another first-timer two days before the ride.",
+        reminders: "Optional reminder at 7:00 PM the night before.",
+        privacy: "Only the ride leader sees your name and bike. Rides and locations are never public.",
+        appFeatures: "Search, filters, list or map view, sort, save rides with the heart, Picked for you questions, dark mode, My rides tab with tickets. Under your answers there are buttons to join, save or get directions."
+      }
+    };
+  }
+
+  function buildTurns() {
+    const rules = `You are the assistant inside Spoke, an app that helps people who are new to cycling in Chicago find and join beginner-friendly, no-drop group rides. Answer the rider's latest question using ONLY the app data below. If the data doesn't cover it (for example the weather), say so plainly and suggest asking the ride leader. If the rider says "it" or "that ride", use the conversation to tell which ride they mean. Be warm, plain and brief: at most 80 words, no markdown, no bullet symbols. Reply in the language the rider writes in. Recommend specific rides when that helps. Never invent rides, times, prices or people.
+
+Format: write the answer as plain text. Then, on its own final line, write RIDES: followed by the ids of up to 3 rides your answer recommends or is about, separated by commas, or RIDES: none.
+
+APP DATA (JSON):
+${JSON.stringify(appData())}`;
+    const turns = [{ role: "user", content: rules }];
+    state.chat.slice(-10).forEach((m) => {
+      if (m.role === "user") turns.push({ role: "user", content: m.text });
+      else turns.push({ role: "assistant", content: `${m.text}\nRIDES: ${m.rideIds && m.rideIds.length ? m.rideIds.join(", ") : "none"}` });
+    });
+    return turns;
+  }
+
+  // Split Claude's text into the answer and its "RIDES:" line. While streaming, hide a half-written "RIDES:" line.
+  function splitReply(raw, streaming) {
+    const m = String(raw).match(/\n?[ \t]*RIDES:[ \t]*([^\n]*)\s*$/i);
+    let text = m ? String(raw).slice(0, m.index) : String(raw);
+    if (streaming && !m) {
+      const lines = text.split("\n");
+      const last = lines[lines.length - 1].trim().toUpperCase();
+      if (last && "RIDES:".startsWith(last)) lines.pop();
+      text = lines.join("\n");
+    }
+    return { text: text.trim(), ids: m ? (m[1].match(/\d+/g) || []).map(Number) : [] };
+  }
+  const cleanIds = (a) => Array.isArray(a) ? [...new Set(a.map(Number))].filter((id) => byId(id)).slice(0, 3) : [];
+  const mentioned = (text) => RIDES.filter((r) => text.includes(plain(r.name))).map((r) => r.id);
+  const lastRideId = () => { for (let i = state.chat.length - 1; i >= 0; i--) { const m = state.chat[i]; if (m.role !== "user" && m.rideIds && m.rideIds.length) return m.rideIds[0]; } return null; };
+
+  /* --- Built-in helper: understands typos, follow-ups ("it", "that ride") and two-part questions --- */
+  const COMMON = "about after also anything been before best bike bikes bring come could does doing first from going good have help into just know like long many more much near need next only over please ride rides riding should show some still sure take takes tell than thank thanks that their them then there these they this those time very want week what when where which will with would your yours start does meet".split(" ");
+  const INTENTS = [];
+  const VOCAB = new Set(COMMON);
+  function intent(id, words, fn) { INTENTS.push({ id, words, fn }); words.forEach((w) => w.split(/[\s-]+/).forEach((x) => { if (/^[a-z]{4,}$/.test(x)) VOCAB.add(x); })); }
+  RIDES.forEach((r) => r.keys.forEach((k) => k.split(" ").forEach((x) => { if (/^[a-z]{4,}$/.test(x)) VOCAB.add(x); })));
+
+  function lev(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  }
+  function normalize(q) {
+    const words = q.toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9'á-úñ$ -]+/g, " ").replace(/\s+/g, " ").trim().split(" ");
+    return " " + words.map((w) => {
+      if (w.length < 4 || VOCAB.has(w) || /[^a-z]/.test(w)) return w;
+      const limit = w.length >= 7 ? 2 : 1;
+      let best = null;
+      for (const v of VOCAB) {
+        if (Math.abs(v.length - w.length) > limit) continue;
+        const dist = lev(w, v);
+        if (dist <= limit && (!best || dist < best.d)) best = { v, d: dist };
+      }
+      return best ? best.v : w;
+    }).join(" ") + " ";
+  }
+
+  const nm = (r) => plain(r.name);
+  const slot = (r) => `${r.dayShort} ${r.time}`;
+  const spotsTxt = (r) => isFull(r) ? "full, with a waitlist" : `${plural(spotsLeft(r), "spot")} left`;
+  const paceMax = (r) => parseInt(r.pace.split("–")[1], 10);
+  const ans = (text, rs) => ({ text, rides: rs || [] });
+
+  intent("nodrop", ["no-drop", "no drop", "nodrop", "sweep", "left behind", "get dropped", "keep up", "too slow"], ({ named }) =>
+    ans(`No-drop means nobody gets left behind. The leader regroups at turns and lights, and a sweep rider stays at the very back${named ? ` (on ${nm(named)} that's ${named.sweep.name})` : ""}. If you're slower, the group simply waits.`, named ? [named] : []));
+  intent("cost", ["cost", "free", "price", "pay ", "money", "$", " fee"], () =>
+    ans("Every Spoke ride is free. You only need a bike, a helmet and water."));
+  intent("release", ["cancel", "release", "can't make", "cant make", "drop out", "leave the ride", "unjoin", "change my mind"], () =>
+    ans("You can release your spot up to 2 hours before the ride. Open the ride and tap Release my spot. If you tap it by mistake, Undo puts you straight back."));
+  intent("waitlist", ["waitlist", "wait list", " full"], () =>
+    ans(`${nm(RIDES[3])} is full, with ${RIDES[3].waitlist} people waiting. Join the waitlist from the ride page or the button below; you'll see your place and can leave any time.`, [RIDES[3]]));
+  intent("mine", ["my ride", "booked", "joined", "my ticket", "signed up", "am i going", "my spot"], () => {
+    const j = RIDES.filter((r) => state.joined[r.id]);
+    return j.length
+      ? ans(`You're going to ${j.map((r) => `${nm(r)} (${slot(r)})`).join(" and ")}. Your ticket and check-in code are in My rides.`, j)
+      : ans("You haven't joined a ride yet. Pick one from Rides and tap Join this ride; your ticket then shows up in My rides.");
+  });
+  intent("howjoin", ["how do i join", "how to join", "sign up", "book a", "reserve", "register", "how do i get a spot"], ({ named }) =>
+    ans(`Open ${named ? nm(named) : "a ride"}, tap Join this ride, pick your bike and how many group rides you've done, then tap Confirm my spot. You'll get a ticket with a check-in code.`, named ? [named] : []));
+  intent("nobike", ["no bike", "don't own", "dont own", "don't have a bike", "dont have a bike", "borrow", "rent", "bike share", "divvy", "without a bike"], ({ named }) => {
+    const r = named || RIDES[0];
+    return ans(`Yes! Pick "Bike share" when you join. Every ride starts near a dock: for ${nm(r)}, it's the ${plain(r.dockNote).replace(/^Dock /, "dock ")}. Arrive 10 minutes early to unlock one.`, [r]);
+  });
+  intent("ebike", ["e-bike", "ebike", "electric"], () =>
+    ans("E-bikes are welcome on every ride. The group rides at the leader's pace, so keep your assist low and stay with the group."));
+  intent("bring", ["bring", "wear", "pack", "helmet", "gear", "need to have"], ({ named }) => named
+    ? ans(`For ${nm(named)}, bring: ${named.bring.map((b) => b.n ? `${b.t.toLowerCase()} (${b.n.toLowerCase()})` : b.t.toLowerCase()).join(", ")}.`, [named])
+    : ans("Every ride needs a helmet. Bring water, and lights for the Tuesday evening ride. The lakefront ride runs cold, so bring gloves and a windproof layer. Ask about a specific ride for its full list."));
+  // Weather comes before day words, so "Will it rain on Saturday?" isn't answered with a schedule.
+  intent("weather", ["weather", "rain", "cold", "snow", "wind", "hot ", "storm", "forecast"], ({ named }) =>
+    ans(`I can't see the forecast. Leaders decide on the day and post any change before the ride${named ? `; ${named.leader.first} leads ${nm(named)}` : ""}. Layers and gloves are a good idea by the lake.`, named ? [named] : []));
+  intent("duration", ["how long does", "how long is", "how long will", "duration", "what time", "when is", "when does", "how many hours", "how many minutes"], ({ named }) => named
+    ? ans(`${nm(named)} starts ${named.day} at ${named.time} (arrive by ${named.arrive}) and takes ${named.duration.toLowerCase()} for ${named.distance} miles, including the stops.`, [named])
+    : ans(`${[...RIDES].sort((a, b) => a.order - b.order).map((r) => `${nm(r)}: ${slot(r)}, ${r.duration.toLowerCase()}`).join("; ")}.`));
+  intent("evening", ["weeknight", "evening", "night", "after work", "tonight", "dark"], () => {
+    const rs = RIDES.filter((r) => r.tags.includes("evening"));
+    return ans(`${rs.map((r) => `${nm(r)} runs ${r.day} at ${r.time} (${r.distance} mi, ${spotsTxt(r)})`).join(". ")}. Front and rear lights are required.`, rs);
+  });
+  intent("weekend", ["weekend", "saturday", "sunday"], () => {
+    const rs = RIDES.filter((r) => r.tags.includes("weekend")).sort((a, b) => a.order - b.order);
+    return ans(`This weekend: ${rs.map((r) => `${nm(r)} on ${r.day} at ${r.time} (${spotsTxt(r)})`).join("; ")}.`, rs);
+  });
+  intent("fit", ["first", "beginner", "new to", "nervous", "scared", "easy", "slow", "never", "haven't ridden", "rusty", "best for me", "good fit", "right for me", "suit me", "recommend", "which ride"], ({ named }) => {
+    if (named) {
+      const gentle = paceMax(named) <= 10;
+      return ans(`${nm(named)} averages ${named.pace} mph over ${named.distance} miles (${named.level} pace). ${gentle ? "That's gentle, a good first group ride." : "It's a little quicker, but it's no-drop and the sweep rider stays with you."} It's ${spotsTxt(named)}.`, [named]);
+    }
+    const open = RIDES.filter((r) => paceMax(r) <= 10 && !isFull(r)).sort((a, b) => paceMax(a) - paceMax(b));
+    return ans(`For a first group ride, try ${open.map((r) => `${nm(r)} (${r.pace} mph, ${r.distance} mi, ${slot(r)})`).join(" or ")}. The ${nm(RIDES[3])} is the gentlest, but it's full, so join its waitlist too.`, [...open, RIDES[3]]);
+  });
+  intent("distance", ["short", "distance", "how far", "longest", "miles", "mile "], () => {
+    const rs = [...RIDES].sort((a, b) => a.distance - b.distance);
+    return ans(`From shortest: ${rs.map((r) => `${nm(r)} ${r.distance} mi`).join(", ")}.`, rs.slice(0, 3));
+  });
+  intent("pace", ["pace", "fast", "speed", "mph", "quick"], () =>
+    ans(`Pace is the average speed while moving, not counting stops. ${[...RIDES].sort((a, b) => paceMax(a) - paceMax(b)).map((r) => `${nm(r)}: ${r.pace} mph (${r.level})`).join("; ")}.`));
+  intent("where", ["where", " meet", "direction", "get there", "location", "address", "start from"], ({ named }) => named
+    ? ans(`${nm(named)} meets at ${named.meet}, ${named.area}. Arrive by ${named.arrive}; the group leaves at ${named.time}. Tap Directions below for a map.`, [named])
+    : ans(`Meeting points: ${RIDES.map((r) => `${nm(r)} at ${r.meet}`).join("; ")}.`));
+  intent("leader", ["leader", "who leads", "who is", "organizer", "host"], ({ named }) => named
+    ? ans(`${named.leader.name} leads ${nm(named)} and has led ${named.leader.led} rides. ${named.sweep.name} rides at the back as sweep.`, [named])
+    : ans(`${RIDES.map((r) => `${r.leader.name} leads ${nm(r)} (${r.leader.led} rides led)`).join(". ")}.`));
+  intent("safety", ["safe", "safety", "traffic", "lights", "accident", " car"], () =>
+    ans("Every ride is no-drop with a sweep rider at the back, and helmets are required. The 606 ride has no cars at all, and the evening ride uses protected bike lanes with a light check before you roll.", [RIDES[1], RIDES[2]]));
+  intent("buddy", ["buddy", "alone", "friend", "know anyone", "shy"], () =>
+    ans("Turn on 'Pair me with a ride buddy' when you join and we'll introduce you to another first-timer two days before. You can also tap Invite a friend on your ticket."));
+  intent("remind", ["remind", "calendar", "notification", "alert"], () =>
+    ans("When you join, turn on 'Remind me the night before' for a 7:00 PM reminder. Your ticket also has an Add to calendar button."));
+  intent("features", ["search", " map", "filter", "sort", "dark mode", "save", "heart"], ({ named }) => named
+    ? ans(`Tap Save below to keep ${nm(named)} in your Saved tab.`, [named])
+    : ans("On Rides you can search, filter by weekend, distance or evenings, switch between List and Map, and sort. Tap the heart to save a ride, and the moon button turns on dark mode."));
+
+  // "bring|2": the topic and ride a question is about, used to avoid repeat follow-ups.
+  function topicOf(q) {
+    const t = normalize(q);
+    const hit = INTENTS.find((i) => i.words.some((x) => t.includes(x)));
+    const r = RIDES.find((x) => x.keys.some((k) => t.includes(k)));
+    return `${hit ? hit.id : "?"}|${r ? r.id : ""}`;
+  }
+
+  function localAnswer(q) {
+    const t = normalize(q);
+    const has = (ws) => ws.some((x) => t.includes(x));
+    let named = RIDES.find((r) => r.keys.some((k) => t.includes(k)));
+    if (!named && /\b(it|that ride|this ride|that one|this one|the same ride|get there)\b/.test(t)) named = byId(lastRideId());
+    const ctx = { t, named };
+    const pack = (a) => ({ text: a.text, rideIds: [...new Set(a.rides.map((r) => r.id))].slice(0, 3) });
+
+    if (/^ (thanks|thank you|thx|ty|cheers)\b/.test(t)) return pack(ans(`You're welcome, ${USER.first}! Ask me anything else about the rides.`));
+    const hits = INTENTS.filter((i) => has(i.words));
+    if (!hits.length) {
+      if (/^ (hi|hello|hey|yo|hiya)\b/.test(t) && t.length < 26)
+        return pack(ans(`Hi ${USER.first}! I can tell you which ride suits you, what to bring, where to meet, or how joining works. What would you like to know?`));
+      if (named) return pack(ans(`${nm(named)}: ${named.day} at ${named.time} from ${named.meet}. ${named.distance} mi at ${named.pace} mph (${named.level} pace), led by ${named.leader.name}. It's ${spotsTxt(named)}.`, [named]));
+      return pack(ans("I can help with which ride suits you, what to bring, where to meet, pace, or how joining works. Try one of the questions below."));
+    }
+    // Two-part questions ("what should I bring and where do we meet?") get both answers.
+    const multi = / and | also |\?.+\?/.test(t) && hits.length > 1;
+    const parts = (multi ? hits.slice(0, 2) : hits.slice(0, 1)).map((i) => i.fn(ctx));
+    return pack({ text: parts.map((p) => p.text).join(" "), rides: parts.flatMap((p) => p.rides) });
+  }
+
+  /* --- Rendering --- */
+  function actionsHTML(r) {
+    const a = [];
+    if (state.joined[r.id]) a.push(`<a class="bot-act primary" href="#done-${r.id}">${icon("ticket")} View ticket</a>`);
+    else if (state.waitlist[r.id]) a.push(`<span class="bot-act done">${icon("clock")} Waitlist #${waitPos(r)}</span>`);
+    else if (isFull(r)) a.push(`<button type="button" class="bot-act primary" data-action="waitlist" data-id="${r.id}">${icon("clock")} Join waitlist</button>`);
+    else a.push(`<a class="bot-act primary" href="#join-${r.id}" data-bot-join="${r.id}">Join ${esc(SHORT[r.id].replace(/^the /, ""))}</a>`);
+    a.push(state.saved[r.id]
+      ? `<span class="bot-act done">${icon("heart")} Saved</span>`
+      : `<button type="button" class="bot-act" data-action="save" data-id="${r.id}">${icon("heart")} Save</button>`);
+    a.push(`<a class="bot-act" href="${mapsUrl(r)}" target="_blank" rel="noopener">${icon("nav")} Directions</a>`);
+    return `<span class="bot-acts">${a.join("")}</span>`;
+  }
+
+  function msgHTML(m, i, isLast) {
+    if (m.role === "user") return `<div class="msg msg-user">${esc(m.text)}</div>`;
+    const rides = (m.rideIds || []).map(byId).filter(Boolean)
+      .map((r) => `<a class="ask-ride" href="#ride-${r.id}">${r.name}<span>${r.dayShort} ${r.time}</span></a>`).join("");
+    const first = isLast && m.rideIds && m.rideIds.length ? byId(m.rideIds[0]) : null;
+    const tools = m.by === "note" ? "" : `<span class="msg-tools">${tts ? `<button type="button" class="mini-btn" data-action="ask-speak" data-i="${i}" aria-pressed="${speakingId === i}">${icon("speaker")}<span> ${speakingId === i ? "Stop" : "Read aloud"}</span></button>` : ""}<button type="button" class="mini-btn" data-action="ask-copy" data-i="${i}">${icon("copy")}<span> Copy</span></button></span>`;
+    return `<div class="msg msg-bot" data-by="${m.by || "offline"}" data-i="${i}"><span class="who">${icon("spark")} ${m.by === "claude" ? "Claude" : "Spoke assistant"}</span>${esc(m.text)}${rides ? `<span class="ask-rides">${rides}</span>` : ""}${first ? actionsHTML(first) : ""}${m.note ? `<span class="msg-note">${esc(m.note)}</span>` : ""}${tools}</div>`;
+  }
+
+  function askView() {
+    const intro = `<div class="msg msg-bot" data-by="intro"><span class="who">${icon("spark")} Spoke assistant</span>Hi ${USER.first}! Ask me anything about this week's rides: which one suits you, what to bring, where to meet, or how joining works.</div>`;
+    let lastBot = -1;
+    state.chat.forEach((m, i) => { if (m.role !== "user") lastBot = i; });
+    // Skip follow-ups on a topic already asked about this ride (even if it was typed differently).
+    const userQs = state.chat.filter((m) => m.role === "user").map((m) => m.text);
+    const topics = new Set(userQs.map((q) => topicOf(q)));
+    const asked = new Set(userQs);
+    const r0 =lastBot >= 0 && state.chat[lastBot].rideIds && state.chat[lastBot].rideIds.length ? byId(state.chat[lastBot].rideIds[0]) : null;
+    let chips = !state.chat.length ? SUGGESTIONS : r0 ? followUps(r0, asked).filter((q) => !topics.has(topicOf(q))) : [];
+    if (state.chat.length && !chips.length) chips = SUGGESTIONS.filter((q) => !asked.has(q)).slice(0, 3);
+    const label = state.chat.length ? "Ask next" : "Suggested questions";
+    return `
+      <div class="pad ask-head">
+        <p class="eyebrow">Assistant</p>
+        <div class="ask-head-row">
+          <h1 class="h1" tabindex="-1">Ask Spoke</h1>
+          ${state.chat.length ? `<button type="button" class="link" data-action="ask-clear">New chat</button>` : ""}
+        </div>
+        <p class="sub">Answers come from this week's rides and your bookings.</p>
+        <span>${engineBadge()}</span>
+      </div>
+      <div class="pad msgs" id="msgs" role="log" aria-live="polite" aria-label="Conversation">
+        ${intro}${state.chat.map((m, i) => msgHTML(m, i, i === lastBot)).join("")}
+        ${state.chatBusy ? `<div class="msg msg-bot" data-busy><span class="who">${icon("spark")} Thinking…</span><span id="stream-text"></span><span class="typing" aria-hidden="true"><i></i><i></i><i></i></span></div>` : ""}
+      </div>
+      ${chips.length ? `<div class="pad suggest" role="group" aria-label="${label}">
+        ${state.chat.length ? `<span class="suggest-label" aria-hidden="true">${label}</span>` : ""}
+        ${chips.map((q) => `<button type="button" class="chip" data-action="ask-suggest" data-q="${esc(q)}"${state.chatBusy ? " disabled" : ""}>${esc(q)}</button>`).join("")}
+      </div>` : ""}
+      <div class="dock">
+        <form class="composer" id="ask-form">
+          <label class="sr-only" for="ask-input">Ask a question</label>
+          <input id="ask-input" type="text" autocomplete="off" maxlength="300" placeholder="${dict ? "Ask, or tap the mic" : "Ask about rides, gear or joining"}" value="${esc(state.askDraft)}">
+          ${dict && !state.chatBusy ? `<button type="button" class="send mic" data-action="ask-mic" aria-pressed="${listening}" aria-label="${listening ? "Stop listening" : "Ask by voice"}">${icon("mic")}</button>` : ""}
+          ${state.chatBusy
+            ? `<button type="button" class="send" data-action="ask-stop" aria-label="Stop the answer">${icon("stop")}</button>`
+            : `<button type="submit" class="send" aria-label="Send question">${icon("send")}</button>`}
+        </form>
+        ${tabbar("ask")}
+      </div>`;
+  }
+
+  function redrawAsk(scroll = true) {
+    if (app.dataset.view !== "ask") return;
+    app.dataset.still = "1";
+    app.classList.remove("enter");
+    const keepTop = app.scrollTop, keepY = window.scrollY;
+    app.innerHTML = askView();
+    syncTheme();
+    if (scroll) {
+      // Bring the newest message's end just above the input bar (keeping its top visible if it's tall).
+      // Aim for the follow-up chips under the answer; never push the answer's top out of view.
+      const last = app.querySelector("#msgs > :last-child");
+      const end = app.querySelector(".suggest") || last;
+      const dockEl = app.querySelector(".dock");
+      if (last && end && dockEl) {
+        const top = Math.max(app.getBoundingClientRect().top, 0) + 12;
+        const shift = Math.min(end.getBoundingClientRect().bottom - (dockEl.getBoundingClientRect().top - 12), last.getBoundingClientRect().top - top);
+        if (shift > 0) { app.scrollTop += shift; window.scrollBy(0, shift); }
+      }
+    } else { app.scrollTop = keepTop; window.scrollTo(0, keepY); }
+    const input = app.querySelector("#ask-input");
+    if (input && !state.chatBusy && scroll) input.focus({ preventScroll: true });
+  }
+
+  async function ask(q) {
+    q = String(q || "").trim().slice(0, 300);
+    if (!q || state.chatBusy) return;
+    if (listening && dict) dict.stop().catch(() => {});
+    state.chat.push({ role: "user", text: q });
+    state.askDraft = "";
+    dictBase = "";
+    state.chatBusy = true;
+    redrawAsk();
+    let reply;
+    await aiReady;
+    if (aiSample) {
+      askCtl = new AbortController();
+      let shown = "";
+      try {
+        const res = await aiSample(buildTurns(), {
+          modelTier: "quick", cache: false, signal: askCtl.signal,
+          onText: ({ text }) => {
+            shown = splitReply(text, true).text;
+            const el = document.getElementById("stream-text");
+            if (el) el.textContent = shown;
+          }
+        });
+        const { text, ids } = splitReply(res && res.text, false);
+        if (!text) throw { code: "empty_completion" };
+        reply = { text, rideIds: cleanIds(ids.length ? ids : mentioned(text)), by: "claude",
+          note: res.truncated ? "This answer was cut short. Ask for less at a time." : "" };
+      } catch (e) {
+        const code = e && e.code;
+        if (code === "cancelled") {
+          const part = splitReply((e && e.text) || shown, false).text;
+          reply = part
+            ? { text: part, rideIds: cleanIds(mentioned(part)), by: "claude", note: "Stopped before the end." }
+            : { text: "Stopped. Ask again whenever you like.", rideIds: [], by: "note" };
+        } else {
+          if (["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(code)) {
+            aiSample = null; aiState = "offline";
+          }
+          const note = code === "rate_limited" ? "Claude is busy right now, so this is the built-in answer."
+            : aiSample ? "Claude couldn't answer that, so this is the built-in answer." : "";
+          reply = { ...localAnswer(q), by: "offline", note };
+        }
+      }
+      askCtl = null;
+    } else {
+      await new Promise((r) => setTimeout(r, 300));
+      reply = { ...localAnswer(q), by: "offline" };
+    }
+    state.chat.push({ role: "bot", ...reply });
+    if (state.chat.length > 40) state.chat.splice(0, state.chat.length - 40);
+    state.chatBusy = false;
+    saveChat();
+    redrawAsk();
+  }
+
+  /* ---------- Router ---------- */
+  function parse(hash) {
+    const h = (hash || "").replace(/^#/, "");
+    if (h === "saved" || h === "mine" || h === "ask") return { view: h };
+    const m = h.match(/^(ride|join|done)-(\d+)$/);
+    if (m) {
+      const ride = byId(Number(m[2]));
+      if (ride) return { view: m[1], ride };
+    }
+    return { view: "home" };
+  }
+
+  function viewHTML(r) {
+    switch (r.view) {
+      case "ride": return rideView(r.ride);
+      case "join": return joinView(r.ride);
+      case "done": return doneView(r.ride);
+      case "saved": return savedView();
+      case "mine": return mineView();
+      case "ask": return askView();
+      default: return homeView();
+    }
+  }
+
+  function syncTheme() {
+    const dark = isDark();
+    document.querySelectorAll('[data-action="theme"]').forEach((b) => {
+      const label = dark ? "Switch to light mode" : "Switch to dark mode";
+      b.setAttribute("aria-label", label);
+      b.setAttribute("aria-pressed", String(dark));
+      if (b.dataset.themeLabel === "long") b.textContent = dark ? "Light mode" : "Dark mode";
+      else b.innerHTML = icon(dark ? "light" : "moon");
+    });
+  }
+
+  function paint(r) {
+    delete app.dataset.still;
+    if (!firstRender) { hideToast(); closeSheet(); } // messages and sheets belong to the screen they were shown on
+    app.innerHTML = viewHTML(r);
+    app.dataset.view = r.view;
+    if (!firstRender) { app.scrollTop = 0; window.scrollTo(0, 0); } // first load is already at the top; skip the forced layout
+    const step = ["saved", "mine", "ask"].includes(r.view) ? "home" : r.view;
+    if (flow) flow.querySelectorAll("li").forEach((li) => {
+      if (li.dataset.step === step) li.setAttribute("aria-current", "step");
+      else li.removeAttribute("aria-current");
+    });
+    syncTheme();
+    // Floating "Ask Spoke" bot on ride screens, with a question about that ride ready to send.
+    const fab = document.getElementById("bot-fab");
+    if (fab) {
+      const show = ["ride", "join", "done"].includes(r.view);
+      fab.hidden = !show;
+      screenEl.dataset.fab = show ? (r.view === "done" ? "low" : "raised") : "";
+      if (show) {
+        const s = SHORT[r.ride.id];
+        fab.dataset.id = r.ride.id;
+        fab.dataset.q = r.view === "join" ? `What should I bring to ${s}?` : r.view === "done" ? `Where do we meet for ${s}?` : `Is ${s} good for a beginner?`;
+        fab.setAttribute("aria-label", `Ask Spoke about ${plain(r.ride.name)}`);
+        fab.classList.toggle("raised", r.view !== "done");
+      }
+    }
+    if (!firstRender) {
+      const h = r.view === "ask" && state.focusAsk ? app.querySelector("#ask-input") : app.querySelector("h1");
+      state.focusAsk = false;
+      if (h) h.focus({ preventScroll: true });
+      app.classList.remove("enter");
+      void app.offsetWidth;
+      app.classList.add("enter");
+    }
+    firstRender = false;
+  }
+
+  function render() {
+    const r = parse(location.hash);
+    if (r.view === "done" && !state.joined[r.ride.id]) { location.replace("#" + (isFull(r.ride) ? "ride-" : "join-") + r.ride.id); return; }
+    if (r.view === "join" && (state.joined[r.ride.id] || isFull(r.ride))) { location.replace("#ride-" + r.ride.id); return; }
+    paint(r);
+  }
+
+  // Re-draw the current screen in place (keeps scroll position and focus).
+  function refresh(focusSel) {
+    const st = app.scrollTop, wy = window.scrollY;
+    app.dataset.still = "1";
+    app.classList.remove("enter");
+    app.innerHTML = viewHTML(parse(location.hash));
+    app.scrollTop = st;
+    window.scrollTo(0, wy);
+    syncTheme();
+    if (focusSel) { const el = app.querySelector(focusSel); if (el) el.focus({ preventScroll: true }); }
+  }
+
+  /* ---------- "Picked for you" bottom sheet ---------- */
+  const screenEl = document.querySelector(".screen");
+  let sheetDraft = null, sheetOpener = null;
+  const sheetEl = () => document.getElementById("sheet");
+  const sheetOpen = () => { const w = sheetEl(); return !!w && !w.hidden; };
+
+  function sheetHTML() {
+    const d = sheetDraft;
+    const group = (k, items, multi) => items.map((it) =>
+      `<button type="button" class="chip" data-action="pref" data-k="${k}" data-v="${it.id}" aria-pressed="${multi ? d[k].includes(it.id) : d[k] === it.id}">${it.label}</button>`).join("");
+    return `
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+        <span class="grabber" aria-hidden="true"></span>
+        <div class="titleblock">
+          <h2 class="h1" id="sheet-title">Find rides that fit you</h2>
+          <p class="sub">Three quick questions. Change them any time.</p>
+        </div>
+        <div class="sheet-q"><p class="q" id="q-level">How much have you ridden?</p><div class="chip-wrap" role="group" aria-labelledby="q-level">${group("level", PREF_LEVELS)}</div></div>
+        <div class="sheet-q"><p class="q" id="q-bike">What will you ride?</p><div class="chip-wrap" role="group" aria-labelledby="q-bike">${group("bike", BIKES)}</div></div>
+        <div class="sheet-q"><p class="q" id="q-times">When are you free? <span>Pick any</span></p><div class="chip-wrap" role="group" aria-labelledby="q-times">${group("times", TIMES, true)}</div></div>
+        <div class="sheet-actions">
+          <button type="button" class="btn btn-ghost" data-action="close-sheet">Not now</button>
+          <button type="button" class="btn btn-primary" data-action="save-prefs">Show my picks</button>
+        </div>
+      </div>`;
+  }
+  function openSheet(opener) {
+    sheetDraft = state.prefs
+      ? { ...state.prefs, times: [...state.prefs.times] }
+      : { level: state.form.level, bike: state.form.bike, times: ["weekend"] };
+    sheetOpener = opener || null;
+    let wrap = sheetEl();
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "sheet";
+      wrap.className = "sheet-wrap";
+      wrap.addEventListener("click", (e) => { if (e.target === wrap) closeSheet(); });
+      screenEl.appendChild(wrap);
+    }
+    wrap.innerHTML = sheetHTML();
+    wrap.hidden = false;
+    app.setAttribute("inert", "");
+    const first = wrap.querySelector('.chip[aria-pressed="true"]') || wrap.querySelector(".chip");
+    if (first) first.focus();
+  }
+  function closeSheet() {
+    const wrap = sheetEl();
+    if (!wrap || wrap.hidden) return;
+    wrap.hidden = true;
+    app.removeAttribute("inert");
+    if (sheetOpener && sheetOpener.isConnected) sheetOpener.focus();
+    else { const t = app.querySelector('[data-action="open-sheet"]'); if (t) t.focus(); }
+  }
+  function redrawSheet(focusSel) {
+    const wrap = sheetEl();
+    wrap.innerHTML = sheetHTML();
+    const el = wrap.querySelector(focusSel);
+    if (el) el.focus();
+  }
+
+  function goBack() {
+    const r = parse(location.hash);
+    const to = r.view === "join" ? "ride-" + r.ride.id : ["ride", "done", "saved", "mine", "ask"].includes(r.view) ? "home" : null;
+    if (to) location.hash = to;
+    return !!to;
+  }
+
+  function refreshList() {
+    app.querySelectorAll('.chip[data-action="filter"]').forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.value === state.filter)));
+    app.querySelectorAll('[data-action="view"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.value === state.view)));
+    const list = app.querySelector("#ride-list");
+    if (list) list.innerHTML = listHTML();
+    const count = app.querySelector("#ride-count");
+    if (count) count.textContent = plural(visibleRides().length, "ride");
+  }
+
+  // Messages: a success (✓) or info (i) icon; Undo messages show a countdown bar,
+  // and the timer pauses while the pointer or keyboard is on the message (WCAG 2.2.1).
+  let toastTimer = 0;
+  let toastUndo = null;
+  let toastSeq = 0;
+  let toastLeft = 0, toastStart = 0, toastPaused = false;
+  const INFO_IC = '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/>';
+  function endToast() { toastEl.classList.remove("show", "paused"); toastUndo = null; toastPaused = false; }
+  function runToastTimer(ms) { clearTimeout(toastTimer); toastLeft = ms; toastStart = Date.now(); toastTimer = setTimeout(endToast, ms); }
+  function toast(msg, undo, kind) {
+    toastSeq++;
+    toastUndo = undo || null;
+    const info = kind ? kind === "info" : !!undo;
+    const dur = undo ? 6000 : 2800;
+    toastEl.innerHTML = "";
+    toastEl.classList.remove("paused");
+    toastPaused = false;
+    toastEl.dataset.kind = info ? "info" : "success";
+    const ic = document.createElement("span");
+    ic.className = "t-ic";
+    ic.innerHTML = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${info ? INFO_IC : PATHS.check}</svg>`;
+    toastEl.appendChild(ic);
+    const span = document.createElement("span");
+    span.className = "t-msg";
+    span.textContent = msg;
+    toastEl.appendChild(span);
+    if (undo) {
+      const b = document.createElement("button");
+      b.type = "button"; b.dataset.action = "undo"; b.textContent = "Undo";
+      b.setAttribute("aria-label", `Undo: ${msg}`);
+      toastEl.appendChild(b);
+      const bar = document.createElement("span");
+      bar.className = "t-bar";
+      bar.style.animationDuration = dur + "ms";
+      bar.setAttribute("aria-hidden", "true");
+      toastEl.appendChild(bar);
+    }
+    void toastEl.offsetWidth;
+    toastEl.classList.add("show");
+    runToastTimer(dur);
+  }
+  function pauseToast() {
+    if (toastPaused || !toastEl.classList.contains("show") || !toastUndo) return;
+    toastPaused = true;
+    clearTimeout(toastTimer);
+    toastLeft = Math.max(800, toastLeft - (Date.now() - toastStart));
+    toastEl.classList.add("paused");
+  }
+  function resumeToast() {
+    if (!toastPaused) return;
+    toastPaused = false;
+    toastEl.classList.remove("paused");
+    runToastTimer(toastLeft);
+  }
+  toastEl.addEventListener("mouseover", pauseToast);
+  toastEl.addEventListener("mouseout", (e) => { if (!toastEl.contains(e.relatedTarget)) resumeToast(); });
+  toastEl.addEventListener("focusin", pauseToast);
+  toastEl.addEventListener("focusout", (e) => { if (!toastEl.contains(e.relatedTarget)) resumeToast(); });
+  toastEl.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); hideToast(); } });
+  const hideToast = () => { toastSeq++; toastUndo = null; toastPaused = false; clearTimeout(toastTimer); toastEl.classList.remove("show", "paused"); };
+  const buzz = () => { try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { /* not supported */ } };
+
+  /* ---------- Events ---------- */
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-action]");
+    if (!el) return;
+    const ride = byId(Number(el.dataset.id));
+    switch (el.dataset.action) {
+      case "filter":
+        state.filter = el.dataset.value;
+        refreshList();
+        break;
+      case "clear-filters":
+        state.filter = "all"; state.query = "";
+        refresh("#search");
+        break;
+      case "view":
+        state.view = el.dataset.value;
+        refreshList();
+        break;
+      case "pin":
+        state.mapSel = Number(el.dataset.id);
+        refreshList();
+        { const p = app.querySelector(`[data-action="pin"][data-id="${state.mapSel}"]`); if (p) p.focus(); }
+        break;
+      case "open-sheet":
+        openSheet(el);
+        break;
+      case "ask-suggest":
+        ask(el.dataset.q);
+        break;
+      case "ask-stop":
+        if (askCtl) askCtl.abort();
+        break;
+      case "ask-clear":
+        if (askCtl) askCtl.abort();
+        state.chat = [];
+        saveChat();
+        redrawAsk();
+        break;
+      case "ask-about":
+        if (!ride) return;
+        state.askDraft = el.dataset.q || `Is ${SHORT[ride.id]} good for a beginner?`;
+        state.focusAsk = true;
+        location.hash = "ask";
+        break;
+      case "ask-mic": {
+        if (!dict) return;
+        if (listening) { dict.stop().catch(() => {}); break; }
+        const input = app.querySelector("#ask-input");
+        dictBase = input ? input.value.trim() : "";
+        // start() must run straight from the tap, with nothing awaited first.
+        dict.start().catch((err) => {
+          if (err && err.code === "not_granted") { dict = null; softRedrawAsk(); }
+          else if (err && err.code !== "dismissed") toast("Voice input isn't available right now. You can still type.", null, "info");
+        });
+        break;
+      }
+      case "ask-speak": {
+        const i = Number(el.dataset.i);
+        const m = state.chat[i];
+        if (!tts || !m) return;
+        if (speakingId === i) { try { tts.stop(); } catch (err) { /* already stopped */ } speakingId = -1; syncSpeak(); break; }
+        speakingId = i;
+        syncSpeak();
+        tts.speak(m.text).catch((err) => {
+          if (err && err.code === "not_granted") { tts = null; softRedrawAsk(); }
+          if (speakingId === i) { speakingId = -1; syncSpeak(); }
+        });
+        break;
+      }
+      case "ask-copy": {
+        const m = state.chat[Number(el.dataset.i)];
+        if (!m) return;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText)
+            navigator.clipboard.writeText(m.text).then(() => toast("Answer copied"), () => toast("Select the answer to copy it", null, "info"));
+          else toast("Select the answer to copy it", null, "info");
+        } catch (err) { toast("Select the answer to copy it", null, "info"); }
+        break;
+      }
+      case "close-sheet":
+        closeSheet();
+        break;
+      case "pref": {
+        const k = el.dataset.k, v = el.dataset.v;
+        if (k === "times") {
+          const i = sheetDraft.times.indexOf(v);
+          if (i >= 0) sheetDraft.times.splice(i, 1); else sheetDraft.times.push(v);
+        } else sheetDraft[k] = v;
+        redrawSheet(`[data-k="${k}"][data-v="${v}"]`);
+        break;
+      }
+      case "save-prefs":
+        state.prefs = sheetDraft;
+        state.form.level = sheetDraft.level;
+        state.form.bike = sheetDraft.bike;
+        state.sort = "picked";
+        persist();
+        closeSheet();
+        refresh('[data-action="open-sheet"]');
+        buzz();
+        toast(`${plural(RIDES.filter(isPick).length, "ride")} picked for you`);
+        break;
+      case "save": {
+        if (!ride) return;
+        if (state.saved[ride.id]) delete state.saved[ride.id]; else state.saved[ride.id] = true;
+        persist();
+        const now = !!state.saved[ride.id];
+        if (app.dataset.view === "ask") redrawAsk(false);
+        else if (app.dataset.view === "saved") refresh();
+        else {
+          app.querySelectorAll(`[data-action="save"][data-id="${ride.id}"]`).forEach((b) => {
+            b.setAttribute("aria-pressed", String(now));
+            b.classList.remove("pop");
+            if (now) { void b.offsetWidth; b.classList.add("pop"); }
+          });
+          const nav = app.querySelector(".tabbar");
+          if (nav) nav.outerHTML = tabbar(nav.querySelector('[aria-current="page"]')?.dataset.tab || "home");
+        }
+        buzz();
+        toast(now ? "Saved. Find it in the Saved tab." : "Removed from Saved", null, now ? "success" : "info");
+        break;
+      }
+      case "share": {
+        if (!ride) return;
+        const url = location.href.split("#")[0] + "#ride-" + ride.id;
+        // A slow clipboard answer must never cover a newer message, so only the first result counts,
+        // and only if nothing else was shown in the meantime.
+        const token = toastSeq;
+        let settled = false;
+        const finish = (ok) => {
+          if (settled) return;
+          settled = true;
+          if (token === toastSeq) toast(ok ? "Link copied. Send it to a friend." : "Copy this link: " + url, null, ok ? "success" : "info");
+        };
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => finish(true), () => finish(false));
+          else finish(false);
+        } catch (err) { finish(false); }
+        setTimeout(() => finish(false), 1200);
+        break;
+      }
+      case "confirm":
+        if (!ride) return;
+        state.joined[ride.id] = { ...state.form };
+        delete state.waitlist[ride.id];
+        persist();
+        buzz();
+        location.hash = "done-" + ride.id;
+        break;
+      case "calendar":
+        if (ride) toast(`Added ${ride.day}, ${ride.time} to your calendar`);
+        break;
+      case "release": {
+        if (!ride) return;
+        const prev = state.joined[ride.id];
+        delete state.joined[ride.id];
+        persist();
+        refresh();
+        toast("Your spot is released", () => { state.joined[ride.id] = prev; persist(); refresh(); });
+        break;
+      }
+      case "waitlist":
+        if (!ride) return;
+        state.waitlist[ride.id] = true;
+        persist();
+        buzz();
+        refresh();
+        toast(`You’re #${waitPos(ride)} on the waitlist`);
+        break;
+      case "unwait":
+        if (!ride) return;
+        delete state.waitlist[ride.id];
+        persist();
+        refresh();
+        toast("You left the waitlist", () => { state.waitlist[ride.id] = true; persist(); refresh(); });
+        break;
+      case "undo":
+        if (toastUndo) { const fn = toastUndo; toastUndo = null; fn(); }
+        hideToast();
+        break;
+      case "theme":
+        state.theme = isDark() ? "light" : "dark";
+        root.dataset.theme = state.theme;
+        persist();
+        syncTheme();
+        break;
+      case "restart": {
+        const theme = state.theme;
+        state = fresh();
+        state.theme = theme;
+        persist();
+        saveChat();
+        hideToast();
+        closeSheet();
+        if (location.hash && location.hash !== "#home") location.hash = "home";
+        else render();
+        break;
+      }
+    }
+  });
+
+  app.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.id === "sort") { state.sort = t.value; refreshList(); return; }
+    if (t.name === "bike") state.form.bike = t.value;
+    else if (t.name === "level") state.form.level = t.value;
+    else if (t.id === "buddy") state.form.buddy = t.checked;
+    else if (t.id === "remind") state.form.remind = t.checked;
+    else return;
+    persist();
+  });
+
+  app.addEventListener("submit", (e) => {
+    if (e.target.id !== "ask-form") return;
+    e.preventDefault();
+    const input = e.target.querySelector("#ask-input");
+    ask(input ? input.value : "");
+  });
+
+  app.addEventListener("input", (e) => {
+    if (e.target.id === "ask-input") { state.askDraft = e.target.value; return; }
+    if (e.target.id !== "search") return;
+    state.query = e.target.value;
+    refreshList();
+  });
+
+  // Keyboard: "/" jumps to search, Esc closes the sheet or goes back; Tab stays inside an open sheet.
+  document.addEventListener("keydown", (e) => {
+    if (sheetOpen()) {
+      if (e.key === "Escape") { e.preventDefault(); closeSheet(); }
+      else if (e.key === "Tab") {
+        const f = [...sheetEl().querySelectorAll("button")];
+        const i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && (i === f.length - 1 || i === -1)) { e.preventDefault(); f[0].focus(); }
+      }
+      return;
+    }
+    const tag = (e.target.tagName || "").toLowerCase();
+    const typing = tag === "input" || tag === "select" || tag === "textarea";
+    if (e.key === "/" && !typing && app.dataset.view === "home") {
+      e.preventDefault();
+      const s = document.getElementById("search");
+      if (s) s.focus();
+    } else if (e.key === "Escape" && typing && e.target.id === "ask-input" && e.target.value) {
+      e.preventDefault(); // first Esc clears the question, the next one leaves
+      e.target.value = "";
+      state.askDraft = "";
+    } else if (e.key === "Escape" && !(typing && e.target.value)) {
+      if (goBack()) e.preventDefault();
+    }
+  });
+
+  // Touch: swipe right from the left edge to go back.
+  let touch = null;
+  app.addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    touch = t.clientX - app.getBoundingClientRect().left < 32 ? { x: t.clientX, y: t.clientY } : null;
+  }, { passive: true });
+  app.addEventListener("touchend", (e) => {
+    if (!touch) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touch.x, dy = Math.abs(t.clientY - touch.y);
+    touch = null;
+    if (dx > 70 && dy < 60) goBack();
+  }, { passive: true });
+
+  if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener("change", syncTheme);
+  window.addEventListener("hashchange", render);
+  render();
+})();
+</script>

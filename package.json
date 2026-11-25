@@ -1,0 +1,20 @@
+{
+  "name": "meet-spoke",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Spoke: a clickable prototype of an app that helps new cyclists find and join a no-drop group ride.",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/check.mjs",
+    "cover": "node tests/cover.mjs",
+    "lighthouse": "node tests/lighthouse.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "4.10.2",
+    "lighthouse": "12.2.1",
+    "puppeteer-core": "23.11.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
